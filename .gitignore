@@ -3,4 +3,4 @@ news_database.db
 
 # Ignorer les dossiers cachés de Python
 __pycache__/
-*.pyc
+*.pyc  
