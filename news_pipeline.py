@@ -61,16 +61,16 @@ def run_news_pipeline():
             ''', (url, ticker_symbol, date_utc, title, content, json_standard))
             
             if cursor.rowcount > 0:
-                print("  -> LIVRAISON : Nouvel article sauvegardé en base de données")
+                print("LIVRAISON : Nouvel article sauvegardé en base de données")
             else:
-                print("  -> LIVRAISON : Article déjà présent en base (ignoré).")
+                print("LIVRAISON : Article déjà présent en base (ignoré).")
             
             conn.commit()
         except Exception as e:
-            print(f"  -> Erreur lors de la sauvegarde : {e}")
+            print(f"Erreur lors de la sauvegarde : {e}")
 
     conn.close()
-    print("\n--- Fin du Pipeline ---")
+    print("\nFin du Pipeline")
 
 if __name__ == "__main__":
     run_news_pipeline()
