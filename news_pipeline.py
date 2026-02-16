@@ -25,14 +25,19 @@ def run_news_pipeline():
     news_list = stock.news 
 
     for news_item in news_list:
-        url = news_item.get('link')
-        title = news_item.get('title')
-        timestamp = news_item.get('providerPublishTime')
-
-        date_utc = ""
-        if timestamp:
-            date_utc = datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat()
-
+        content_data = news_item.get('content', {})
+        
+        title = content_data.get('title')
+        date_utc = content_data.get('pubDate', "")
+        
+        url = None
+        if content_data.get('clickThroughUrl'):
+            url = content_data['clickThroughUrl'].get('url')
+        elif content_data.get('canonicalUrl'):
+            url = content_data['canonicalUrl'].get('url')
+            
+        if not url:
+            continue
         print(f"\nTraitement de l'article : {title}")
         content = ""
         try:
