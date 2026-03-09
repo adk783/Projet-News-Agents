@@ -115,6 +115,7 @@ def run_news_pipeline(tickers):
                 logger.debug(f"URL : {url}")
             except Exception as e:
                 logger.error(f"Erreur sauvegarde : {e}")
+            time.sleep(2)
 
     conn.close()
     logger.info("Fin du pipeline")
