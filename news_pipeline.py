@@ -29,6 +29,8 @@ def run_news_pipeline(tickers):
         CREATE TABLE IF NOT EXISTS articles (
             url TEXT PRIMARY KEY, 
             ticker TEXT,
+            sector TEXT,
+            industry TEXT,
             date_utc TEXT,
             title TEXT,
             content TEXT,
@@ -39,6 +41,9 @@ def run_news_pipeline(tickers):
     for ticker_symbol in tickers:
         logger.info(f"DÉTECTION : Scan des news pour {ticker_symbol}")
         stock = yf.Ticker(ticker_symbol)
+        sector = stock.info.get('sector', 'Inconnu')
+        industry = stock.info.get('industry', 'Inconnu')
+        logger.debug(f"{ticker_symbol} : secteur={sector}, industrie={industry}")
         news_list = stock.news
         logger.debug(f"{len(news_list)} articles trouvés pour {ticker_symbol}") 
 
@@ -71,6 +76,8 @@ def run_news_pipeline(tickers):
 
             data_dict = {
                 "ticker": ticker_symbol,
+                "sector": sector,
+                "industry": industry,
                 "title": title,
                 "date_utc": date_utc,
                 "url": url,
@@ -80,9 +87,9 @@ def run_news_pipeline(tickers):
 
             try:
                 cursor.execute('''
-                    INSERT OR IGNORE INTO articles (url, ticker, date_utc, title, content, json_brut)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ''', (url, ticker_symbol, date_utc, title, content, json_standard))
+                    INSERT OR IGNORE INTO articles (url, ticker, sector, industry, date_utc, title, content, json_brut)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (url, ticker_symbol, sector, industry, date_utc, title, content, json_standard))
             
                 if cursor.rowcount > 0:
                     logger.info("LIVRAISON : Nouvel article sauvegardé")
