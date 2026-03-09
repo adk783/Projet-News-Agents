@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 import argparse
 import logging
 import time
+import trafilatura
 
 
 logger = logging.getLogger("NewsPipeline")
@@ -66,14 +67,27 @@ def run_news_pipeline(tickers):
             logger.info(f"Traitement : {title}")
             content = ""
             try:
-                article = Article(url)
+                article = Article(url, request_timeout=10)
                 article.download()
                 article.parse()
                 content = article.text
-                logger.debug(f"Extraction réussie ({len(content)} caractères)")
+                logger.debug(f"Newspaper : {len(content)} caractères extraits")
             except Exception as e:
-                logger.error(f"Erreur d'extraction pour '{title}' : {e}")
-                continue 
+                logger.warning(f"Newspaper a échoué pour '{title}' : {e}")
+
+            if len(content) < 100:
+                logger.debug(f"Contenu trop court ({len(content)} car.), tentative avec trafilatura...")
+                try:
+                    downloaded = trafilatura.fetch_url(url)
+                    if downloaded:
+                        content = trafilatura.extract(downloaded) or ""
+                        logger.debug(f"Trafilatura : {len(content)} caractères extraits")
+                except Exception as e:
+                    logger.warning(f"Trafilatura a échoué pour '{title}' : {e}")
+
+            if len(content) < 100:
+                logger.warning(f"Article ignoré (contenu trop court) : {title}")
+                continue
 
             data_dict = {
                 "ticker": ticker_symbol,
@@ -121,7 +135,7 @@ if __name__ == "__main__":
         help="Intervalle en minutes entre chaque scan (minimum 20, ex: --loop 30)"
     )
     args = parser.parse_args()
-    
+
     MAX_TICKERS = 5
 
     if len(args.tickers) > MAX_TICKERS:
