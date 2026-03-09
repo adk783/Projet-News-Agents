@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timezone
 import argparse
 import logging
+import time
 
 
 logger = logging.getLogger("NewsPipeline")
@@ -113,5 +114,29 @@ if __name__ == "__main__":
         default=DEFAULT_TICKERS,
         help="Liste de tickers à scanner (ex: AAPL MSFT TSLA)"
     )
+    parser.add_argument(
+        "--loop",
+        type=int,
+        default=None,
+        help="Intervalle en minutes entre chaque scan (minimum 20, ex: --loop 30)"
+    )
     args = parser.parse_args()
-    run_news_pipeline(args.tickers)
+    
+    MAX_TICKERS = 5
+
+    if len(args.tickers) > MAX_TICKERS:
+        print(f"Erreur : maximum {MAX_TICKERS} tickers autorisés, tu en as mis {len(args.tickers)}.")
+        exit(1)
+
+    if args.loop is not None and args.loop < 20:
+        print(f"Erreur : l'intervalle minimum est de 20 minutes (tu as mis {args.loop}).")
+        exit(1)
+
+    if args.loop:
+        logger.info(f"Mode continu : scan toutes les {args.loop} minutes")
+        while True:
+            run_news_pipeline(args.tickers)
+            logger.info(f"Prochain scan dans {args.loop} minutes...")
+            time.sleep(args.loop * 60)
+    else:
+        run_news_pipeline(args.tickers)
