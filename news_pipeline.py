@@ -4,8 +4,25 @@ import sqlite3
 import json
 from datetime import datetime, timezone
 import argparse
+import logging
+
+
+logger = logging.getLogger("NewsPipeline")
+logger.setLevel(logging.DEBUG)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
+
+file_handler = logging.FileHandler("pipeline.log", mode="w", encoding="utf-8")
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
 
 def run_news_pipeline(tickers):
+    logger.debug(f"Tickers à scanner : {tickers}")
     conn = sqlite3.connect('news_database.db')
     cursor = conn.cursor()
     cursor.execute('''
@@ -20,9 +37,10 @@ def run_news_pipeline(tickers):
     ''') 
     conn.commit()
     for ticker_symbol in tickers:
-        print(f"1. DÉTECTION : Scan des news pour {ticker_symbol}")
+        logger.info(f"DÉTECTION : Scan des news pour {ticker_symbol}")
         stock = yf.Ticker(ticker_symbol)
-        news_list = stock.news 
+        news_list = stock.news
+        logger.debug(f"{len(news_list)} articles trouvés pour {ticker_symbol}") 
 
         for news_item in news_list:
             content_data = news_item.get('content', {})
@@ -37,17 +55,18 @@ def run_news_pipeline(tickers):
                 url = content_data['canonicalUrl'].get('url')
             
             if not url:
+                logger.debug(f"Article ignoré (pas d'URL) : {title}")
                 continue
-            print(f"\nTraitement de l'article : {title}")
+            logger.info(f"Traitement : {title}")
             content = ""
             try:
                 article = Article(url)
                 article.download()
                 article.parse()
                 content = article.text
-                print("  -> Extraction réussie.")
+                logger.debug(f"Extraction réussie ({len(content)} caractères)")
             except Exception as e:
-                print(f"  -> Erreur d'extraction (blocage ou format) : {e}")
+                logger.error(f"Erreur d'extraction pour '{title}' : {e}")
                 continue 
 
             data_dict = {
@@ -66,16 +85,17 @@ def run_news_pipeline(tickers):
                 ''', (url, ticker_symbol, date_utc, title, content, json_standard))
             
                 if cursor.rowcount > 0:
-                    print("LIVRAISON : Nouvel article sauvegardé en base de données")
+                    logger.info("LIVRAISON : Nouvel article sauvegardé")
                 else:
-                    print("LIVRAISON : Article déjà présent en base (ignoré).")
+                    logger.info("LIVRAISON : Article déjà présent (ignoré)")
             
                 conn.commit()
+                logger.debug(f"URL : {url}")
             except Exception as e:
-                print(f"Erreur lors de la sauvegarde : {e}")
+                logger.error(f"Erreur sauvegarde : {e}")
 
     conn.close()
-    print("\nFin du Pipeline")
+    logger.info("Fin du pipeline")
 
 DEFAULT_TICKERS = ["AAPL", "MSFT", "GOOGL"]
 if __name__ == "__main__":

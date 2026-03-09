@@ -1,0 +1,44 @@
+2026-03-09 10:52:59,160 [DEBUG] Tickers à scanner : ['TSLA']
+2026-03-09 10:52:59,161 [INFO] DÉTECTION : Scan des news pour TSLA
+2026-03-09 10:52:59,449 [DEBUG] 10 articles trouvés pour TSLA
+2026-03-09 10:52:59,449 [INFO] Traitement : Tesla’s Robot And Battery Push Tests Rich Valuation And Auto Stock Label
+2026-03-09 10:53:00,631 [DEBUG] Extraction réussie (2332 caractères)
+2026-03-09 10:53:00,632 [INFO] LIVRAISON : Nouvel article sauvegardé
+2026-03-09 10:53:00,635 [DEBUG] URL : https://finance.yahoo.com/news/tesla-robot-battery-push-tests-061037512.html
+2026-03-09 10:53:00,635 [INFO] Traitement : Apple, Tesla, and Alphabet All Sinking As Oil Prices Explode Higher
+2026-03-09 10:53:01,791 [DEBUG] Extraction réussie (2782 caractères)
+2026-03-09 10:53:01,791 [INFO] LIVRAISON : Article déjà présent (ignoré)
+2026-03-09 10:53:01,791 [DEBUG] URL : https://finance.yahoo.com/news/apple-tesla-alphabet-sinking-oil-004926918.html
+2026-03-09 10:53:01,792 [INFO] Traitement : F-150 Lightning Outsold Tesla's Cybertruck, But Ford CEO Says He 'Would've Done It Differently'
+2026-03-09 10:53:02,908 [DEBUG] Extraction réussie (2415 caractères)
+2026-03-09 10:53:02,909 [INFO] LIVRAISON : Nouvel article sauvegardé
+2026-03-09 10:53:02,912 [DEBUG] URL : https://finance.yahoo.com/news/f-150-lightning-outsold-teslas-220039312.html
+2026-03-09 10:53:02,912 [INFO] Traitement : Nvidia and Meta Platforms Are Now Cheaper Than the S&P 500. Which "Magnificent Seven" Stock Is the Best Buy in March?
+2026-03-09 10:53:04,106 [DEBUG] Extraction réussie (2843 caractères)
+2026-03-09 10:53:04,106 [INFO] LIVRAISON : Article déjà présent (ignoré)
+2026-03-09 10:53:04,107 [DEBUG] URL : https://finance.yahoo.com/news/nvidia-meta-platforms-now-cheaper-193700125.html
+2026-03-09 10:53:04,107 [INFO] Traitement : Tesla's Europe Registrations Rise 10% In February Despite Sales Drops In Key Markets
+2026-03-09 10:53:05,280 [DEBUG] Extraction réussie (2195 caractères)
+2026-03-09 10:53:05,282 [INFO] LIVRAISON : Nouvel article sauvegardé
+2026-03-09 10:53:05,284 [DEBUG] URL : https://finance.yahoo.com/news/teslas-europe-registrations-rise-10-193022920.html
+2026-03-09 10:53:05,284 [INFO] Traitement : Elon Musk Announced In 2020 To Own Almost Nothing. A New Report Says He Quietly Built 90 Texas Companies With Expanding Assets
+2026-03-09 10:53:06,463 [DEBUG] Extraction réussie (2626 caractères)
+2026-03-09 10:53:06,464 [INFO] LIVRAISON : Nouvel article sauvegardé
+2026-03-09 10:53:06,467 [DEBUG] URL : https://finance.yahoo.com/news/elon-musk-announced-2020-own-180033918.html
+2026-03-09 10:53:06,467 [INFO] Traitement : Bank of America resets Amazon stock forecast
+2026-03-09 10:53:07,633 [DEBUG] Extraction réussie (6026 caractères)
+2026-03-09 10:53:07,633 [INFO] LIVRAISON : Article déjà présent (ignoré)
+2026-03-09 10:53:07,633 [DEBUG] URL : https://finance.yahoo.com/news/bank-america-resets-amazon-stock-164700315.html
+2026-03-09 10:53:07,633 [INFO] Traitement : Maye Musk Shares Emotional Tesla Crash Story, Says Photographer Credited Tesla And Elon For Saving His Family
+2026-03-09 10:53:08,947 [DEBUG] Extraction réussie (2469 caractères)
+2026-03-09 10:53:08,949 [INFO] LIVRAISON : Nouvel article sauvegardé
+2026-03-09 10:53:08,951 [DEBUG] URL : https://finance.yahoo.com/news/maye-musk-shares-emotional-tesla-143032323.html
+2026-03-09 10:53:08,951 [INFO] Traitement : YieldMax’s TSLA Option Income ETF Has a 60%+ Yield And a Track Record That Should Terrify You
+2026-03-09 10:53:10,137 [DEBUG] Extraction réussie (7562 caractères)
+2026-03-09 10:53:10,139 [INFO] LIVRAISON : Nouvel article sauvegardé
+2026-03-09 10:53:10,142 [DEBUG] URL : https://finance.yahoo.com/news/yieldmax-tsla-option-income-etf-120752840.html
+2026-03-09 10:53:10,142 [INFO] Traitement : What to Expect in Markets This Week: Data on Inflation, Housing, and Consumer Sentiment; Earnings From Oracle, Adobe
+2026-03-09 10:53:11,505 [DEBUG] Extraction réussie (2934 caractères)
+2026-03-09 10:53:11,507 [INFO] LIVRAISON : Nouvel article sauvegardé
+2026-03-09 10:53:11,511 [DEBUG] URL : https://finance.yahoo.com/news/expect-markets-week-data-inflation-101500042.html
+2026-03-09 10:53:11,511 [INFO] Fin du pipeline
