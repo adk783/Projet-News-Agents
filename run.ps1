@@ -1,52 +1,78 @@
-# Usage : .\run.ps1
-# Usage avec tickers custom : .\run.ps1 TSLA NVDA AMZN
-
 param(
+    [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$Tickers = @()
 )
 
-Write-Host "`n[1/3] Vérification d'Ollama..." -ForegroundColor Cyan
+Set-Location -Path $PSScriptRoot
 
-$ollamaActif = $false
-try {
-    $response = Invoke-WebRequest -Uri "http://localhost:11434" -TimeoutSec 2 -UseBasicParsing -ErrorAction Stop
-    $ollamaActif = $true
-} catch {}
+Write-Host "`n[0/3] Verification des prerequis..." -ForegroundColor Cyan
 
-if (-not $ollamaActif) {
-    Write-Host "  -> Ollama non détecté. Démarrage en arrière-plan..." -ForegroundColor Yellow
-    Start-Process ollama -ArgumentList "serve" -WindowStyle Hidden
-    Write-Host "  -> Attente de 5 secondes..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 5
+$missingTools = @()
+if (-not (Get-Command "ollama" -ErrorAction SilentlyContinue)) { $missingTools += "ollama" }
+if (-not (Get-Command "python" -ErrorAction SilentlyContinue)) { $missingTools += "python" }
 
-    try {
-        Invoke-WebRequest -Uri "http://localhost:11434" -TimeoutSec 3 -UseBasicParsing -ErrorAction Stop | Out-Null
-        Write-Host "  -> Ollama prêt." -ForegroundColor Green
-    } catch {
-        Write-Host "  -> ERREUR : Impossible de démarrer Ollama. Vérifiez l'installation." -ForegroundColor Red
-        exit 1
-    }
-} else {
-    Write-Host "  -> Ollama déjà actif." -ForegroundColor Green
+if ($missingTools.Count -gt 0) {
+    Write-Host "  -> ERREUR CRITIQUE : Les outils suivants sont introuvables dans le PATH :" -ForegroundColor Red
+    foreach ($tool in $missingTools) { Write-Host "     - $tool" -ForegroundColor Red }
+    Write-Host "  Veuillez les installer ou les ajouter a vos variables d'environnement." -ForegroundColor Yellow
+    exit 1
 }
 
-Write-Host "`n[2/3] Vérification du modèle deepseek-r1:7b..." -ForegroundColor Cyan
+Write-Host "  -> Tous les outils requis sont installes." -ForegroundColor Green
 
-$modeles = ollama list 2>&1
-if ($modeles -notmatch "deepseek-r1:7b") {
-    Write-Host "  -> Modèle absent. Téléchargement en cours (~4.7 GB)..." -ForegroundColor Yellow
+Write-Host "`n[1/3] Verification d'Ollama..." -ForegroundColor Cyan
+
+$ollamaUrl = "http://localhost:11434"
+$isOllamaRunning = $false
+
+try {
+    $null = Invoke-WebRequest -Uri $ollamaUrl -TimeoutSec 2 -UseBasicParsing -ErrorAction Stop
+    $isOllamaRunning = $true
+    Write-Host "  -> Ollama est deja actif." -ForegroundColor Green
+} catch {}
+
+if (-not $isOllamaRunning) {
+    Write-Host "  -> Ollama non detecte. Demarrage en arriere-plan..." -ForegroundColor Yellow
+    Start-Process ollama -ArgumentList "serve" -WindowStyle Hidden
+
+    Write-Host "  -> Attente du demarrage d'Ollama..." -ForegroundColor Yellow
+    $retries = 15
+    $ready = $false
+
+    for ($i = 0; $i -lt $retries; $i++) {
+        try {
+            $null = Invoke-WebRequest -Uri $ollamaUrl -TimeoutSec 1 -UseBasicParsing -ErrorAction Stop
+            $ready = $true
+            break
+        } catch {
+            Start-Sleep -Seconds 1
+        }
+    }
+
+    if (-not $ready) {
+        Write-Host "  -> ERREUR : Le serveur Ollama n'a pas repondu apres $retries secondes." -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "  -> Ollama est pret." -ForegroundColor Green
+}
+
+Write-Host "`n[2/3] Verification du modele deepseek-r1:7b..." -ForegroundColor Cyan
+
+$models = ollama list 2>&1
+if ($models -notmatch "deepseek-r1:7b") {
+    Write-Host "  -> Modele absent. Telechargement en cours (~4.7 GB)..." -ForegroundColor Yellow
     ollama pull deepseek-r1:7b
 } else {
-    Write-Host "  -> Modèle disponible." -ForegroundColor Green
+    Write-Host "  -> Modele disponible." -ForegroundColor Green
 }
 
 Write-Host "`n[3/3] Lancement du pipeline..." -ForegroundColor Cyan
 
 if ($Tickers.Count -gt 0) {
     $tickerArg = $Tickers -join " "
-    Write-Host "  -> Tickers : $tickerArg" -ForegroundColor White
+    Write-Host "  -> Execution avec les tickers : $tickerArg" -ForegroundColor White
     python news_pipeline.py --tickers $tickerArg
 } else {
-    Write-Host "  -> Tickers par défaut : AAPL MSFT GOOGL" -ForegroundColor White
+    Write-Host "  -> Execution avec les tickers par defaut : AAPL MSFT GOOGL" -ForegroundColor White
     python news_pipeline.py
 }

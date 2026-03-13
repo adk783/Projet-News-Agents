@@ -1,6 +1,26 @@
-# Ignorer la base de données SQLite locale
-news_database.db
-
-# Ignorer les dossiers cachés de Python
+# Python
 __pycache__/
-*.pyc  
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Environments
+.env
+.venv
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Databases
+*.sqlite3
+*.db
+news_database.db
