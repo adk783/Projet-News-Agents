@@ -1,3 +1,9 @@
 yfinance
 newspaper3k
 lxml_html_clean
+langgraph
+langchain
+transformers
+torch
+langchain-ollama
+pydantic
