@@ -23,6 +23,44 @@ file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(messa
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
+def build_keywords(stock_info):
+    keywords = set()
+    
+    for field in ['shortName', 'longName']:
+        name = stock_info.get(field, '')
+        if name:
+            keywords.add(name.lower())
+            for word in name.split():
+                if len(word) > 2 and word.lower() not in ['inc.', 'inc', 'corp', 'corp.', 'ltd', 'ltd.', 'llc', 'co.', 'the', 'and', 'group']:
+                    keywords.add(word.lower())
+    
+    symbol = stock_info.get('symbol', '')
+    if symbol:
+        keywords.add(symbol.lower())
+    
+    for officer in stock_info.get('companyOfficers', []):
+        name = officer.get('name', '')
+        if name:
+            keywords.add(name.lower())
+            parts = name.split()
+            if len(parts) >= 2:
+                keywords.add(parts[-1].lower())
+    
+    website = stock_info.get('website', '')
+    if website:
+        domain = website.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0]
+        keywords.add(domain.lower())
+    
+    return keywords
+
+
+def is_relevant(title, keywords):
+    title_lower = title.lower()
+    for kw in keywords:
+        if kw in title_lower:
+            return True
+    return False
+
 def run_news_pipeline(tickers):
     logger.debug(f"Tickers à scanner : {tickers}")
     conn = sqlite3.connect('news_database.db')
@@ -45,6 +83,8 @@ def run_news_pipeline(tickers):
         stock = yf.Ticker(ticker_symbol)
         sector = stock.info.get('sector', 'Inconnu')
         industry = stock.info.get('industry', 'Inconnu')
+        keywords = build_keywords(stock.info)
+        logger.debug(f"{ticker_symbol} : mots-clés de filtrage = {keywords}")
         logger.debug(f"{ticker_symbol} : secteur={sector}, industrie={industry}")
         news_list = stock.news
         logger.debug(f"{len(news_list)} articles trouvés pour {ticker_symbol}") 
@@ -53,6 +93,11 @@ def run_news_pipeline(tickers):
             content_data = news_item.get('content', {})
         
             title = content_data.get('title')
+            
+            title_match = is_relevant(title, keywords)
+            if not title_match:
+                logger.debug(f"Titre non matché, vérification du contenu : {title}")
+            
             date_utc = content_data.get('pubDate', "")
         
             url = None
@@ -60,6 +105,8 @@ def run_news_pipeline(tickers):
                 url = content_data['clickThroughUrl'].get('url')
             elif content_data.get('canonicalUrl'):
                 url = content_data['canonicalUrl'].get('url')
+            elif content_data.get('previewUrl'):
+                url = content_data['previewUrl']
             
             if not url:
                 logger.debug(f"Article ignoré (pas d'URL) : {title}")
@@ -75,6 +122,7 @@ def run_news_pipeline(tickers):
             except Exception as e:
                 logger.warning(f"Newspaper a échoué pour '{title}' : {e}")
 
+
             if len(content) < 100:
                 logger.debug(f"Contenu trop court ({len(content)} car.), tentative avec trafilatura...")
                 try:
@@ -89,6 +137,14 @@ def run_news_pipeline(tickers):
                 logger.warning(f"Article ignoré (contenu trop court) : {title}")
                 continue
 
+            if not title_match :
+                count = sum(content.lower().count(kw) for kw in keywords)
+                if count < 3:
+                    logger.info(f"FILTRÉ (hors-sujet, {count} match(s) dans le contenu) : {title}")
+                    continue
+                else:
+                    logger.info(f"GARDÉ par contenu ({count} match(s)) : {title}")
+            
             data_dict = {
                 "ticker": ticker_symbol,
                 "sector": sector,
