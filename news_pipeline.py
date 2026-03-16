@@ -7,6 +7,7 @@ import argparse
 import logging
 import time
 import trafilatura
+import re
 
 
 logger = logging.getLogger("NewsPipeline")
@@ -30,8 +31,9 @@ def build_keywords(stock_info):
         name = stock_info.get(field, '')
         if name:
             keywords.add(name.lower())
-            for word in name.split():
-                if len(word) > 2 and word.lower() not in ['inc.', 'inc', 'corp', 'corp.', 'ltd', 'ltd.', 'llc', 'co.', 'the', 'and', 'group']:
+            cleaned = re.sub(r'[^a-zA-Z\s-]', ' ', name)
+            for word in cleaned.split():
+                if len(word) > 3:
                     keywords.add(word.lower())
     
     symbol = stock_info.get('symbol', '')
@@ -50,6 +52,10 @@ def build_keywords(stock_info):
     if website:
         domain = website.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0]
         keywords.add(domain.lower())
+        if '.' in domain:
+            pure = domain.rsplit('.', 1)[0]
+            if len(pure) > 1:
+                keywords.add(pure.lower())
     
     return keywords
 
@@ -57,7 +63,7 @@ def build_keywords(stock_info):
 def is_relevant(title, keywords):
     title_lower = title.lower()
     for kw in keywords:
-        if kw in title_lower:
+        if re.search(r'\b' + re.escape(kw) + r'\b', title_lower):
             return True
     return False
 
@@ -77,6 +83,19 @@ def run_news_pipeline(tickers):
             json_brut TEXT
         )
     ''') 
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS articles_filtres (
+            url TEXT PRIMARY KEY,
+            ticker TEXT,
+            title TEXT,
+            date_utc TEXT,
+            content TEXT,
+            motif TEXT,
+            match_count INTEGER
+        )
+    ''')
+
     conn.commit()
     for ticker_symbol in tickers:
         logger.info(f"DÉTECTION : Scan des news pour {ticker_symbol}")
@@ -138,9 +157,19 @@ def run_news_pipeline(tickers):
                 continue
 
             if not title_match :
-                count = sum(content.lower().count(kw) for kw in keywords)
+                content_lower = content.lower()
+                count = sum(len(re.findall(r'\b' + re.escape(kw) + r'\b', content_lower)) for kw in keywords)
+
                 if count < 3:
                     logger.info(f"FILTRÉ (hors-sujet, {count} match(s) dans le contenu) : {title}")
+                    try:
+                        cursor.execute('''
+                            INSERT OR IGNORE INTO articles_filtres (url, ticker, title, date_utc, content, motif, match_count)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                        ''', (url, ticker_symbol, title, date_utc, content, "contenu_hors_sujet", count))
+                        conn.commit()
+                    except Exception as e:
+                        logger.error(f"Erreur sauvegarde filtre : {e}")
                     continue
                 else:
                     logger.info(f"GARDÉ par contenu ({count} match(s)) : {title}")

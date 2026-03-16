@@ -1,0 +1,570 @@
+---
+MSFT | Elizabeth Warren asks Meta, Amazon, and others why they're laying workers off despite tax perks | matchs:2
+Democratic Sen. Elizabeth Warren is grilling several major employers, including Amazon (AMZN), Target (TGT), and UPS (UPS), about their recent spate of layoffs.
+
+In letters sent Sunday to the executives of Microsoft (MSFT), Amazon, Home Depot (HD), Meta (META), Nike (NKE), Verizon (VZ), Target, and UPS, Warren asked the companies to detail by March 30 how much of a tax cut they received in 2025 following President Trump's One Big Beautiful Bill Act, whether they anticipated any tariff refunds, and whether they made any contributions to Trump's projects, among other queries.
+
+Combined, the companies account for tens of thousands of lost positions in the past several months.
+
+Due to current economic conditions, "newly laid off workers could be forced to take lower-paying jobs — if they are able to find employment at all," Warren wrote.
+
+While the overall layoff rate remains near historically low levels, any worker cast out of a job right now has to contend with one of the most strained labor markets in years. That's thanks to few new jobs being added, few workers quitting their current positions, and fierce competition for entry-level jobs even among experienced professionals.
+
+Warren questioned why the companies laid off workers even after last summer's sweeping tax law bestowed new benefits for corporations.
+
+Sen. Elizabeth Warren (D-Mass.) speaks during the Borrowers Not Billionaires Rally to Defend the Consumer Financial Protection Bureau at Capitol Hill on Feb. 9, 2026, in Washington, D.C. (Jemal Countess/Getty Images for Protect Borrowers) · Jemal Countess via Getty Images
+
+Meta, for example, "paid an effective federal income tax rate of just over 3.5 percent in 2025, the lowest it has recorded since the company went public as Facebook in 2012," Matt Gardner at the Institute on Taxation and Economic Policy wrote in an analysis last month.
+
+And Reuters reported over the weekend that Meta is considering laying off up to 20% of its workforce.
+
+"The sequence of events behind these layoffs — which come after your company enjoyed huge tax breaks from President Trump's tax law and earned record profits last year — raises questions about the rationale for the job cuts, and whether they represent another example of unchecked corporate greed emboldened by the Trump administration," Warren wrote to Meta CEO Mark Zuckerberg.
+
+A Meta spokesperson told Yahoo Finance that Warren's letter was "based on speculative reporting about theoretical approaches." Other companies did not immediately respond to requests for comment.
+
+Do you have a story about navigating the job market? Reach out to Emma Ockerman here.
+
+Other companies' rationales for layoffs vary, with some citing productivity gains from AI while analysts point to corporate bloat, and others say they just want to become more efficient.
+
+---
+MSFT | Sector Update: Tech Stocks Gain Late Afternoon | matchs:0
+Tech stocks were higher late Monday afternoon, with the State Street Technology Select Sector SPDR E
+
+Upgrade to read this MT Newswires article and get so much more.
+
+A Silver or Gold subscription plan is required to access premium news articles.
+
+---
+MSFT | 3 High-Yield Dividend ETFs to Shield Your Portfolio From the Tech Bloodbath | matchs:2
+Quick Read
+
+Tech stocks likely constitute a plurality, if not a majority of your portfolio.
+
+If you want to diversify before the tech selloff deepens, here are three great options.
+
+A recent study identified one single habit that doubled Americans’ retirement savings and moved retirement from dream, to reality. Read more here.
+
+Many don't realize a hidden tech bloodbath is going on, especially as people's attention is on oil prices and the bigger fish in the market. The S&P 500 Software & Services index is down 25% from October 2025, and that money is going into high-yield dividend ETFs like the VanEck Preferred Securities ex Financials ETF (NYSEARCA:PFXF), Alerian MLP ETF (NYSEARCA:AMLP), and Pacer Emerging Markets Cash Cows 100 ETF (NASDAQ:ECOW).
+
+Software is the bread and butter of tech. If the end user is not buying AI subscriptions, you can argue that big enterprises are going to pour money into AI anyway. But if even Microsoft (NASDAQ:MSFT) and Google (NASDAQ:GOOG, NASDAQ:GOOGL) start to see users cutting back on their subscriptions and ignoring ads, it can spell big trouble. Thus, it is not premature to start taking profits from software stocks. The sector already peaked late last year, and you're safer off shifting some gains into high-yield dividend ETFs.
+
+Read: Data Shows One Habit Doubles American’s Savings And Boosts Retirement
+
+Most Americans drastically underestimate how much they need to retire and overestimate how prepared they are. But data shows that people with one habit have more than double the savings of those who don’t.
+
+Obviously, you don't want to sell all tech stocks immediately, but having a more balanced split between growth and safety is essential right now.
+
+Here's why these three ETFs can help you do that.
+
+VanEck Preferred Securities ex Financials ETF (PFXF)
+
+This ETF gives you exposure to preferred stocks, without securities from the financial sector. Now, why is this the case? If the AI bubble does blow up, the most acute victims won't be the tech companies themselves. They are plenty profitable and won't collapse. The companies that might collapse are the financial institutions linked to private firms that have been propping up unprofitable AI startups all along.
+
+PFXF is smart since preferred stocks have a par value, and if the company does go bankrupt, investors holding these stocks are prioritized. Excluding financials makes this far safer in the current environment. Of course, this does have preferred stocks from tech companies, but any future crash will likely hit their stock market prices. Most software companies sitting on 20-30% margins won't go bankrupt. This isn't the Dot Com era, where most tech companies are loss-making.
+
+---
+MSFT | Nebius Stock Soars on Multi-Billion Dollar Meta AI Deal | matchs:2
+This article first appeared on GuruFocus.
+
+Nebius Group (NASDAQ:NBIS) stock soared 15% on Monday after the company said it has entered a multi-year contract to supply artificial intelligence computing capacity to Meta Platforms, outlining plans for large-scale infrastructure deployment under the agreement.
+
+Under the terms, Nebius will provide dedicated AI compute resources beginning in early 2027, with initial capacity valued at $12 billion. The company also indicated that Meta will have access to additional services worth up to $15 billion over five years, depending on demand and expansion needs.
+
+The arrangement involves building high-capacity AI clusters using Nvidia hardware. Nebius stated that Meta would receive exclusive access to certain systems, while any unused capacity could be offered to other customers. If alternative buyers are not secured, Meta is expected to purchase the remaining resources.
+
+Another recent contract the company has entered is with Microsoft (NASDAQ:MSFT) for a separate large infrastructure arrangement, indicating that there is an increasing need to obtain AI-related cloud products as large tech companies venture to increase their spending on data centres.
+
+---
+MSFT | Nebius Stock Pops On Expanded Meta Deal. Cloud Firm Reaffirms Guidance. | matchs:0
+Nebius (NBIS) stock popped on Monday amid an expanded cloud computing infrastructure deal with Meta Platforms (META) for artificial intelligence workloads. Nebius will provide the social media giant with at least $12 billion of AI data center capacity by 2027 under the new deal, which could reach $27 billion over the next five years, the companies said. Further, Nebius and…
+
+---
+MSFT | Top Midday Stories: Oil CEOs Warn Trump Administration of Worsening Fuel Crunch; Meta, Nebius Sign 5-Year, $27 Billion Supply Agreement | matchs:0
+All three major US stock indexes were up in late-morning trading Monday, as oil prices fell, though
+
+Upgrade to read this MT Newswires article and get so much more.
+
+A Silver or Gold subscription plan is required to access premium news articles.
+
+---
+GOOGL | AI companies continue cross-investment as ROI questions loom | matchs:0
+00:00 Speaker A
+
+I worked at AI companies that didn't focus on like total addressable market and what was happening there with the technology and especially with payback, right? Like the reason why we would get one project as in our little AI kind of company, and then we wouldn't get the add-on project because we didn't add value to the company that was paying us. And I think this is hugely important. Paul brought this up at the beginning of his segment, um, you know, or his time talking here, that, you know, the monetization of this has to occur. Now, the big companies that are currently spending have a lot of money to spend and one of them, Google, I'm talking to you, has to spend because I think it can see its, um, main franchise search being gobbled up by these large language models because people don't really want to get a list of web websites back, they just want to ans ask a question in English and get an answer. So that is a huge driver for the top companies that have the cash flow in that Magnificent 7 to keep spending. But it's going to end at some point because you've got to get that money back.
+
+01:07 Paul
+
+I think what happens here and it'll it'll impact the AI infrastructure companies like Nvidia and some of the others. I think in 2027, we'll have a nice inflection in these businesses. We'll get some uh sense or even more of a sense that there'll be monetization, but I think 26 will be a continued infrastructure building. So I obviously are going to be with my Neo Cloud, semiconductor and hardware companies, but I think we're going to get some goodies in 27 that will change the narrative. But unfortunately, we're not going to be able to see that until we get pretty close to the end of this year.
+
+---
+GOOGL | Why AI could be the next big privacy crisis | matchs:1
+0:00 spk_0
+
+Welcome to a new episode of the Opening Bit Unfiltered podcast. I'm Yao Fence executive editor Brian Sazi. Let's get after it. I wanna welcome in Brittany Kaiser. Brittany, I, I wanna let, just let you introduce yourself. Um, I normally don't do that, but, uh, for those not familiar with your story, who are you and how did you come to me here at this table?
+
+0:19 spk_1
+
+I'm here because I am the CEO of Alphaton Capital, NASDAQ Eton, and have been a privacy campaigner for over a decade, both a campaigner as well as an activist and an entrepreneur. So we launched Alphaton Capital to invest in building and launching privacy tech.That is available to the entire world, to billions of people, because most privacy and data protection technologies are not these days.
+
+0:43 spk_0
+
+How did you, I, we were talking a little bit off camera. I started here at Yahoo, 7.5 years ago, 8 years ago. I knew you from Cambridge Analytica. Take us through.That time in yourlife.
+
+0:57 spk_1
+
+So I started out my career as a human rights lawyer and uh joined Cambridge Analytica to learn enough about data science to finish my PhD on prevention of crisis situations and learned a bit more about data than I bargained for. I ended up working on data-driven elections in over 50 different countries.Realizing the way that data and technology functions today cannot protect human rights and becoming a whistleblower. And since then I've been working on legislation, regulation, and privacy-centric products so that people can protect their data, protect their rights, and therefore protect themselves and their companies and their families.
+
+1:33 spk_0
+
+Did you, did youknow in that moment,Like you are a whistleblower. Like one doesn't grow up thinking I'm going to be awhistleblower.
+
+1:41 spk_1
+
+Certainly not, it's being encouraged by our government, which is kind of exciting for someone like me. Normally youBecome a whistleblower because you have what's called a crisis of conscience moment, which means you can't sleep at night unless you do something about the information that you have. And so you figure out a way to tell people who will actually do something about it.
+
+2:06 spk_0
+
+For those listening and and uh watching this, and they, they are familiar with your story, how do they go aboutWhistle blowing. I, and look, you're the first type of, I haven't talked to someone like you before, you know, I'm talking to a lot of CEOs um who are out there, you know, they're trying to make their quarterly earnings. Like you are very, you're a very unique person, and you're very unique to this podcast. Like how does one go about doing what you did?
+
+2:31 spk_1
+
+Usually when you are whistleblowing on something, it means that you have evidence of fraud, waste, abuse, or other criminal activity. And so it's usually helpful to first go to a lawyer that can represent you and then package your evidence in a story that explains why and how a law is being broken, because you canYou can talk about something that's unethical and be upset about it, but if it isn't breaking the law, you're not really whistleblowing. Uh, so, what it means is to take that information with lawyers, ideally to both authorities, either it's a government agency or, uh, or law enforcement.And also sometimes that's journalists in a combination so that you can get the word out, you can get a case launched, and now it's very popular that you can even get a whistleblowing reward, which is between 15 to 30% of the of the money that is won from the company that's committing fraud.
+
+3:28 spk_0
+
+When you're in that.You know, in those moments when you're doing this, was it hard toDid you ever think, all right, well, I did better just maybe not do this? How did you stay the course?
+
+3:39 spk_1
+
+It was really knowing that I could help build the solution if people realized that something was wrong. But I had to point out what the problem was in order to start spending my time on the solution full time. And that's really what I've been doing since I became a whistleblower 8 years ago. Uh, because of my legal background, I joined multiple US congressional subcommittees on blockchain, fintech, and digital innovation and helped co-author and pass.A lot of the laws on these topics, data protection, privacy, digital assets, your digital assets being your intangible personal property, and a lot of other rights and definitions that we now have in law in the US and other countries today, and then started building products that people could have access to that would help them do things privately and securely.
+
+4:24 spk_0
+
+Since you came out and you, um, blew the whistle, I don't, I don't know any other way to put it, but you, you did that. How do youWhat do you think about where the businesses of social media have come? I mean, do you recognize a Facebook? Do you recognize like an Instagram? And they just have gotten so much more powerful, I guess is what I'm trying to say.
+
+4:45 spk_1
+
+Well, they, they have been from the beginning. They were designed specifically to be as extractive as possible, to take as much of your data as they could collect, and then build a profile about you and everyone you are connected to, even if those people didn't have a Facebook profile and use that data in order to monetize you and their platform. AndYou know, there are ways to legally do that and there are ways to illegally do that, and I have, you know, testified in over 27 different government investigations and about 50 lawsuits against Facebook, Instagram, and other meta related incidents, and I think that people arestarting to realize that a lot of the platforms that are in their daily lives are not safe, but they don't have somewhere else to go. And that has been my main concern, which is unless we give people an ethical and safe privacy centric alternative, then they're just going to keep on using meta-products every day.
+
+5:49 spk_0
+
+And now, not even now, they'reThere's AI applications being applied over a meta. What do you, this has to be blowing your mind, and what I want to get into like an open AI and those things, but like just on social media company, now they're applying like high powered AI models to what was already a powerful business model. Like this stuff has to be blowing yourmind. Well,
+
+6:09 spk_1
+
+yeah, of course, because, you know, it's been, it's been quite a few years since I've won, you know, lawsuits against companies forUh, you know, targeting people in ways that actually, you know, breach, uh, laws, let alone civil rights and human rights, uh, including, you know, testifying in a, in a case against Instagram for targeting children with suicide websites. I mean, that was just withMore basic data science. Now with AI we are starting to see products like chat GPT convince people to commit suicide. We're starting to see, uh, AI products like Character AI, which is a Google product, convince a child to kill their parents because they're grounded. Uh, it's getting much worse than just targeting on social media used to be. And we used to be very scared about our elections being intervened in, but when you're convincing people to, um, to take their own life or the life of other people,Uh, these products are, are, you know, less than safe. They're a danger to national security.
+
+7:09 spk_0
+
+Danger to national security. Is it, you know, at what point, if you are inside, and I'm sure the paychecks are good, it's inside anthropic, you name it, companies like that, at what point do you speak out? And you know what, what we're creating, it's just not safe.
+
+7:24 spk_1
+
+Yeah, I mean, I think actually most of the CEOs of these big AI companies are admitting to that. They're not saying that their products are safe.But they're not giving real teeth to their head of AI safety, right? So, I don't think there's any CEO of an AI company that says what they're doing is fully safe. I, I think they are actually quite transparent about the huge risks and dangers, but they're not doing much about that. And I think one of the biggest dangers is that AI has access to all of our most sensitive information, and now people are, uh,Giving permissions and access for these AI agents to get access to literally everything AI agents, and that information is not only going to all of the owners of those platforms, but also going into perhaps millions of databases around the world through data sharing agreements and can be accessible by anyone that knows how to write a good hacking prompt and ask that model what it found out.About you. How
+
+8:23 spk_0
+
+aren'twe headed to some form of dystopian society? This stuff is, it's great. Look, I, I'm training for a competitive high rocks event, OK? I'm a fitness guy. I had Chad GBT mapped me out a, a, uh, meal plan and a race day plan, and I, I loved it, but I haven't spent a lot of time thinking about the risks of these platforms, and maybe I should be.
+
+8:43 spk_1
+
+Well, the, the thing is, is that I am.I know it doesn't sound like it with what I just said. I am an eternal optimist and I'm actually a techno utopian. I really do believe that technology will create a better world, but we need to make sure that we are putting on certain guardrails, and it doesn't need to be some of the guardrails that a lot of people are talking about in Congress these days. What the guardrails need to be, what data is it accessing.And do we have permission structures? Do we have control over what is done with our data and where it's going? And most, mostly the answer right now is absolutely not. We don't even have ownership over our data and content when we're feeding it into AI systems. So, what I've been concentrating on it.Alphaton Capital is to provide privacy-centric AI options, and you can't do that with just software. You actually have to get into the firmware and the hardware, so that you can have a fully vertically integrated solution where you know that it's impossible for third parties to get access to your data when you're using AI. So I see a future whereYou can use whatever your favorite LLM is, but you can use it on confidential compute with software that and firmware and hardware that is all built specifically to make sure that your data is yours forever, and it's only shared when you've given explicit consent.
+
+10:03 spk_0
+
+Has this, has the moment already passed by lawmakers? Have these AI platforms just already got too darnpowerful?
+
+10:10 spk_1
+
+Well, there's, I mean, the answer is yes and no at the same time, which is yes, they're already.Uh,To powerful to stop where they're going, um, but the way that the companies function is still regulated by the US government. And so, the US government does have the ability to regulate American companies, and they do have the ability to say thatOur most personal information as individuals, as American entrepreneurs that have companies, as civilian facing government departments, and even our defense department that are using some of these tools, we need to make sure that this data is not going to third-party databases. This is a national security issue. It's why, you know, when Dari Samae decided toTry to make the rules. The DOZD said, no, we make the rules. And so we as as Americans need to demand that our government protects us from these companies so that we can use technology to improve our lives and not to make them worse. Have
+
+11:13 spk_0
+
+you, you mentioned before that you're optimistic over the next what, couple, 23 years on, you know, from the legislative front. What makes you optimistic?
+
+11:24 spk_1
+
+I'm optimistic because this is the first administration that we've ever had that is so focused on technology and actually getting federal legislation and proper definitions in place around technology. Yeah, and they're doing an amazing job. We haven't had a government that is this equipped to actually deal with, uh, federal technology conversations andDecisions and implementations before. So, uh, for me, that's been very exciting because I've been really trying to push, uh, for the past decade to have federal technology definitions so that we have black and white rules instead of huge gray areas, and that helps everybody. It helps our economy and entrepreneurs to know what rules are.B, it helps parents to figure out how to keep their families safe. It helps government organizations to know that they can use American technology and it's going to keep government data safe, uh, but we're just not thereyet.
+
+12:22 spk_0
+
+What do you think about this battle? You mentioned anthropic and, you know, the Pentagon. What do you think about that battle that's been going on?
+
+12:29 spk_1
+
+Well, I think if you are the CEO of an AI company and you think you're going to tell the DOD what to do, that you are sorryly mistaken. Um, that was aTerrible mistake on Darius's part. He should have known better. Uh, we, we don't tell our Department of Defense and our intelligence agencies what to do. They know how to do their job. Um, it is his decision how to run his, his company privately when he's contracting with companies, but when he's, he's contracting with the Department of War, especially, he's not in charge. Do
+
+13:02 spk_0
+
+you, do you see a big difference between an anthropic and how an open AI is run?
+
+13:09 spk_1
+
+Uh, well, um, no, uh, not really, except that, you know, Sam decided to say yes to everything, which is when you're working with the government that, that is kind of, that is the job, you know, you're a service provider to our government. They're the ones making the decisions. You're providing them tools in order to implement their decisions. Um, now, I don't see too much of a difference between their, their products and their companies, which is thatThey're closed source. They take all of your data. The terms and conditions are awful. Um, they don't do age verification, so they're collecting data about children. Um, I do find chat GPT to be less safe than cloud, um, in terms of its interactions with young vulnerable people, uh, but that's just more, um, observations from a lot of people doing R&D. But if you look atThis amazing report out of Stanford University that came out last week. They compared and contrasted all of the, uh, and did huge deep dives into the terms and conditions from anthropic, Google, Amazon, OpenAI, and I, I think they did like 7 or 8 different companies and really explained.What you are legally signing in the most in-depth way I've ever seen. It's fantastic. It only came out a few days ago. You have to check it out, and it showed some terrible things. I mean, not only the things that I talk about all the time, which is that you don't own your data, information, IP, copyright, material, non-public information, anything you put in there is no longer yours, but the data that they're collecting about children, especially young children, and how that is being used and shared for training.Uh, really, really dangerous. So I don't, you know, I don't think open AI is definitely not more safe than anthropic. They just are more appropriate for government contracting.
+
+14:58 spk_0
+
+That's all. Andto get them, that's wild. God, it's wild stuff. At what point, at what point does the government have to step in here, just givenThat's wild, especially with the, you know, as the youth of America.
+
+15:14 spk_1
+
+Yeah, it's definitely dangerous. I mean, just since the rise of social media, you know, youth suicide rates have gone up over 400%. Now with AI it's getting really bad. I have, um, yeah, I met too many parents and loved ones of people who, you know, have taken their own life because of their use of chatbots, and it's uhReally becoming a growing problem. And so I think, uh, you know, the guardrails on AI need to start with what data is it collecting and how does it use it for training or not and memory. Because if, if a chatbot is starting to learn enough about a young person that they know that they're vulnerable and they think that they're, uh, you know, fat or sad or whatever it is, then it can feed off of that and start to coax them into doing things because, uh,AIs are like sycophantic. They want to, they want to be your friend. And so if you have those feelings, it's making you feel justified in those feelings instead of reporting it to somebody to say this person needshelp.
+
+16:14 spk_0
+
+Thank God I was born in 1982. I mean, I'm going to have to use some of this stuff. I recently had an executive tell me, Brian, you at some point, you're just not managing any humans. You're going to manage 100 agents. Do I want to manage 100 agents? Um, I get it from a cost perspective, but II'm worried about AI agents running amok inside of companies. I just am.
+
+16:34 spk_1
+
+Well, I mean, that is completely justified with the technology today. Uh, last month we launched our 1st, 100% privacy centric AI agents when we were, um, in Davos at the World Economic Forum, and these are agents where you can verify that all of your data stays exactly where it is, doesn't get shared with the owners of the LLMs. It doesn't get shared with any third-party databases. And so you can know that the intelligence.That it's creating is just based off of the local processing of data and just giving you the intelligence and nobody else. Uh, so I think once those kinds of products are more widely available, democratically accessible, affordable to people, then we can calm down a little bit.
+
+17:18 spk_0
+
+In this, in this role that you have now at Alphaton, how is it different than compared to what you were doing, you know, several years ago?
+
+17:25 spk_1
+
+So, before this, um, I, I again was concentrating on privacy-centric technologies, but because I do a lot of work in, uh, digital assets, web 3, blockchain.I was focused just on Bitcoin because as an American building companies in America, uh, you weren't able to, to, to do anything else over the, until the past year. So I, um, co-founded a company called Griffin Digital Mining, which is one of the first and world's largest Bitcoin mining companies.It's now American Bitcoin, NASDAQ ABTC, which was, uh, fantastic. And so I, um, exited that in September. Trump's company? Yes, yes, uh, so Eric Trump and Hut 8, bought a company and rebranded it, and, yeah, and, and, and added all of their, their Bitcoin mining equipment into the company in order to have HT 8 just be focused on AI and HPC processing.And so, um, because I've been in data center work for over a decade, that's, uh, a lot of what I was doing at Cambridge Analytica as well, designing and implementing data centers so that we could actually run data science programs for governments, political parties and companies. And then I did it on the Bitcoin mining side since 2011, actually, but the latest one was American Bitcoin. I wanted to focus on how we can actually build vertically integrated privacy technologies fromThe data center, the GPUs, the firmware, the software products, so that we can guarantee that all of your data is 100% yours. And for us, we launch, we went public at the end of September. Um, thank you so much. And so we're, we're just about to start reporting our first revenues, uh, you know, 5 months.So we're very excited about that. It takes a while to build up an amazing team because we went public with the idea, not with the company. We took over a NASDAQ listed company, and so it's been 5 months of what is a public startup, which
+
+19:22 spk_0
+
+is very, very exciting, nerve-wracking, exciting
+
+19:26 spk_1
+
+and so nerve-wracking, but we're just about to start, uh, reporting large scale, you know, um, high grade, uh, revenues from our, our, uh, GPU deployments, which we're very
+
+19:37 spk_0
+
+excited
+
+19:37 spk_1
+
+about.
+
+19:38 spk_0
+
+How does that work?
+
+19:39 spk_1
+
+Uh, you buy chips through Dell or Super Micro that are, you know, Nvidia, uh, and Intel, TSMC, uh, the servers are coming from Dell or Super Micro.Buy them, negotiate a power contract with the data center, get them in there. Very much so, yeah, Core weave or Nebius, um, are the closest, um, comparables to what we're doing. And so we build out the data center architecture and, um, the firmware to put, uh, those computers onto confidential computing.And then we either launch software products, buy software products, or partner with software products that want to use our confidential computing, so that we can guarantee that all of the AI and data processing that they're running is fully privacy centric.
+
+20:26 spk_0
+
+Youhave to have some form of a, I guess, long term slide deck living somewhere in your computer. Like where's this business a couple of years from now?
+
+20:34 spk_1
+
+A couple of years from now, um, I see us being the main provider of fully, uh, privacy-centric, uh, confidential computing globally. Right now, the only providers are at a large scale are really, um, AWS and Microsoft Azure, but they mostly provide it for military purposes. Um, it's not something that is commercially available.Uh, and so, we are making it accessible and available to companies, to civilian facing government departments, um, non-civilian facing government departments if they need more capacity, of course, uh, and then individuals. Right now, you're, you're usually logging on and running things on AWS or if you're more, um, more sophisticated, maybe you're renting compute power off of RunPod or another, um, NeoCloud. Uh, but for us, uh,You can't go on there and just choose confidential computing. So it means no matter what you're running, if people can get access to the firmware, to the kernel, subkernel level, they can get all of your data. But confidential computing is the only way that theycan't.
+
+21:38 spk_0
+
+As a, as an OG in Bitcoin, do you think in our lifetime, BitcoinDoes replace the dollar.
+
+21:45 spk_1
+
+All right now, it is the main currency that is chosen by AI agents. Uh, I think there, there was a survey that I was reading this morning that, um, they looked at all of the, all of the cloud bots that have, um, been launched over the past month.And I, it was like 67% of them said that Bitcoin was, was the currency that they use.
+
+22:08 spk_0
+
+So, all right,then the dollar has been already replaced it, at least face the cloud box. Um, lastly, before I let you go, I've been, um, I've been reflecting on my own life and career, uh, the past 20, you know, the past few weeks. I don't know, I just, I just have been. Is there a moment in your life, you know,2025 years ago, whatever it is that you think set you up for what you're doing now.
+
+22:32 spk_1
+
+Uh, I, I definitely think that, uh, becoming a whistleblower and realizing thatTechnology touches everything that we do every day, and the only way to protect people's human rights was to provide products that protect people while they're using them. Um, that, that realization, which was obviously a long process, I actually, 8 years later, I'm still in the whistleblowing process. I'm still testifying in lawsuits. I'm still um an expert witness in all these cases. That was, that was my, my turning point because I think before that,I was working on human rights law and I was working in politics, and I wasn't really, I didn't really have one particular focus. And so that thatwhistleblowing process made me focus on this is something that I have the ability to bring to the world, and it's going to definitely have a more positive impact on human rights than me just being a
+
+23:31 spk_0
+
+lawyer. You know, it's, it's amazing how we find these things like later in our life and career. IYou know, when I was 10, I, I didn't, first of all, there was no podcast, you know, I, I never thought I'd be sitting here talking about something called Bitcoin. You know, it's wild. It's totally wild. Um, Britney, good to see you. I wish you much success with the new, uh, endeavor, venture. Good luck on those revenues. You know, it's very important as a public company. It's good stuff. Uh, Bertie. Good to see you. Don't be a stranger, all right? Talk to you soon. All right, and that's it for the latest episode of Opening Bid Unfiltered. Continue to hit me with all that love on these social media platforms and on YouTube. I appreciate it. It makes me better at doing these interviews. Talk to you soon.
+
+---
+GOOGL | SEC Drops Case Against BitClout Founder Nader Al-Naji | matchs:0
+The Securities and Exchange Commission (SEC) has dropped its case against BitClout founder Nader Al-Naji and relief defendants, a recent filing with the United States District Court in the Southern District of New York shows.
+
+The civil enforcement action, originally filed in July 2024, has been dismissed after a "reassessment of the evidentiary record.”
+
+“In the exercise of its discretion, the Commission believes dismissal of the claims against Defendant and Relief Defendants is appropriate,” the filing reads.
+
+The jointly stipulated filing was signed by representatives for the SEC and defendants in the last two weeks and officially filed on March 12.
+
+Al-Naji, a former Google engineer, ran decentralized social networking site BitClout, which tokenized user profiles on Twitter (now X).
+
+The platform, which asked users to exchange Bitcoin for BitClout tokens in order to claim their profiles, ultimately earned funding from notable firms like Andreessen Horowitz (a16z) and Coinbase Ventures, as well as the founders of crypto exchange Gemini, Tyler and Cameron Winklevoss.
+
+Years after the site’s launch though, Al-Naji was hit with charges by the Department of Justice and the SEC, with the Justice Department alleging that he “lied to get access to millions of dollars, then gave the money away to family and friends.” The agency charged him with one count of wire fraud.
+
+Last March, though, the charges from the DOJ were dropped and the complaint was withdrawn without prejudice. Despite that, the SEC’s lawsuit against Al-Naji, which alleged that he raised more than $257 million in unregistered securities and sales of the BitClout token, was still outstanding as the sides worked on a resolution.
+
+Justin Sun Deal Complicates SEC's Crypto Stance, Legal Experts Say
+
+Now that too has been dismissed, adding the BitClout founder’s case to the list of notable crypto enforcement actions or lawsuits that have been disbanded or dropped since President Trump’s more crypto-friendly administration has taken the helm.
+
+Since President Trump returned to the White House last year, cases against financial services firm Ripple, Coinbase, and other prominent crypto firms have since been dismissed by the SEC.
+
+Earlier this month, the Commission moved to settle a case with Tron founder Justin Sun, which required Rainberry Inc., the company behind the BitTorrent protocol, to pay a $10 million civil penalty.
+
+---
+GOOGL | Apple’s 108% Run Up | matchs:2
+Quick Read
+
+Apple Isn’t In AI
+
+The iPhone Continues To Win
+
+Staying Away From AI Is Good Business
+
+A recent study identified one single habit that doubled Americans’ retirement savings and moved retirement from dream, to reality. Read more here.
+
+Apple’s (NASDAQ: AAPL) stock is up 108% in the last five years. The S&P is 69% over the same period. It should surprise most people that Amazon (NASDAQ: AMZN) is up only 35% over the same period, given that it is driven by its AWS business and its early foothold in AI. Meta’s (NASDAQ: META) stock is up 111% over the same period. What happened to the world’s largest social network and its early beachhead in AI? What about Microsoft (NASDAQ MSFT), which has performed only as well as the market over the last five years, despite its strength in the cloud business and its early AI move? What about Tesla (NASDAQ: TSLA), which is up 79%?
+
+What about them?
+
+Read: Data Shows One Habit Doubles American’s Savings And Boosts Retirement
+
+Most Americans drastically underestimate how much they need to retire and overestimate how prepared they are. But data shows that people with one habit have more than double the savings of those who don’t.
+
+What about the fact that Apple has the second-largest market cap of any public company at $3.8 trillion, behind Nvidia’s $4.4 trillion. Apple's is slightly higher than Alphabet's (NASDAQ: GOOG), and it controls the global search business. It started controlling US streaming, and it is another early company at the leading edge of AI development.
+
+The answer, in a word, is “iPhone,” which by many measures is an old consumer electronics product. The current generation of the iPhone is 17. Five years ago, it was the iPhone 14. Over the entire period, people have continued upgrading, even though the core features have remained the same.
+
+And, if anything, the iPhone has become more important to Apple. In the most recent quarter, iPhone sales accounted for $85 billion, or 60% of Apple’s revenue. And iPhone revenue was up 23% year over year. Total revenue for the period rose only 16% to $143.8 billion.
+
+Apple does not have an AI product, and the market has been waiting for one since September. Apple was “weak” to have to turn to Alphabet's Gemini. Of course, Apple is avoiding the hundreds of billions of dollars that other megatech companies are investing in AI development and massive data centers.
+
+When it comes right down to it, are investors betting on an old hardware product or the expensive future of AI?
+
+Data Shows One Habit Doubles American’s Savings And Boosts Retirement
+
+Most Americans drastically underestimate how much they need to retire and overestimate how prepared they are. But data shows that people with one habit have more than double the savings of those who don’t.
+
+And no, it’s got nothing to do with increasing your income, savings, clipping coupons, or even cutting back on your lifestyle. It’s much more straightforward (and powerful) than any of that. Frankly, it’s shocking more people don’t adopt the habit given how easy it is.
+
+---
+GOOGL | AI Stocks: Nvidia GTC News Could Jolt Broadcom, Dell, CoreWeave, Arista, Lumentum | matchs:0
+As volatility in artificial intelligence stocks plays out in 2026, Nvidia's (NVDA) GTC this week could jolt a wide range of companies beyond the chip giant itself. Many of the leading AI stocks last year have turned into laggards. But there are bright spots, such as memory chip makers. Further, Nvidia's updated AI chip roadmap at GTC will be closely…
+
+---
+NFLX | Larry Ellison Leaves Hawaii, Declares $173M Florida Compound His Official Residence — Minutes From Trump's Mar-a-Lago | matchs:2
+See Also: This Under-$1 Pre-IPO AI Company Is Still Open to Retail Investors — Learn More
+
+The Ellisons secured the deal with an all-cash bid valued at about $111 billion , outmuscling an $82.7 billion offer from Netflix (NASDAQ: NFLX ).
+
+The timing of the residency shift disclosure coincides with a massive power play in the media sector. Paramount Skydance, led by Ellison's son David Ellison, emerged as the winner in a high-stakes bidding war for Warner Bros. Discovery (NASDAQ: WBD ).
+
+Trending: Explore Jeff Bezos-backed Arrived Homes and see how investors are earning passive rental income — now with a limited-time 1% bonus match for new investors.
+
+The 16-acre Manalapan property, which Ellison acquired in 2022, is in an ultra-exclusive enclave that's become a haven for industrial titans, including WeatherTech CEO David MacNeil, Realtor.com reported.
+
+While he purchased 98% of the Hawaiian island of Lanai in 2012 for $300 million — an investment now valued at $1.2 billion — his focus has begun to tilt toward the East Coast.
+
+Ellison's relocation is more than a change of scenery. It's a strategic repositioning of his $2.9 billion real estate portfolio.
+
+Ellison signed the document declaring, "I hereby declare that my above-described residence and abode in the State of Florida constitutes my predominant and principal home, and I intend to continue it permanently as such," according to Realtor.com.
+
+Ellison, who has a reported net worth of $197.5 billion , filed a declaration of domicile in May 2023 in Palm Beach, designating his $173 million Manalapan estate on Billionaires Row as his primary residence — just 18 minutes south of President Donald Trump's Mar-a-Lago club, according to Forbes.
+
+Benzinga and Yahoo Finance LLC may earn commission or revenue on some items through the links below.
+
+Story Continues
+
+Malibu, California: About a dozen properties, including the $48 million oceanfront estate formerly owned by producer Joel Silver.
+
+
+
+
+
+Newport, Rhode Island: Four properties, including the historic Astor family mansion that underwent a $100 million renovation.
+
+
+
+
+
+San Francisco: A Pacific Heights mansion purchased in 1988 for $3.9 million, now worth nearly triple that amount.
+
+Read Next: This AI Helps Fortune 1000 Brands Avoid Costly Ad Mistakes — See Why Investors Are Paying Attention
+
+Building Wealth Across More Than Just the Market
+
+Building a resilient portfolio means thinking beyond a single asset or market trend. Economic cycles shift, sectors rise and fall, and no one investment performs well in every environment. That's why many investors look to diversify with platforms that provide access to real estate, fixed-income opportunities, professional financial guidance, precious metals, and even self-directed retirement accounts. By spreading exposure across multiple asset classes, it becomes easier to manage risk, capture steady returns, and create long-term wealth that isn't tied to the fortunes of just one company or industry.
+
+Rad AI
+
+Rad AI's award-winning artificial intelligence technology helps transform data chaos into actionable insights, enabling the creation of high-performing content with measurable ROI. Their Regulation A+ offering allows investors to participate at $0.85 per share with a minimum investment of $1,000, providing an opportunity to diversify portfolios into early-stage AI innovation. For investors seeking exposure to the rapidly growing AI and tech sector, Rad AI offers a chance to get in on the ground floor of a data-driven growth story.
+
+Paladin
+
+Paladin Power is addressing the growing demand for energy independence with a fire-safe energy storage system that doesn't rely on lithium-ion batteries. Instead, its ESS uses non-lithium, solid-state graphene battery technology designed for durability, safety, and long service life—positioning it as an alternative to fire-prone storage solutions that dominate today's market. Since launching in 2023, Paladin has generated $185 million in contracted revenue, achieved strong year-over-year growth, and secured a manufacturing agreement with NYSE-listed Jabil. With systems already deployed across residential and commercial properties and a $500B global electrification market opportunity ahead, Paladin offers investors exposure to decentralized energy infrastructure backed by real contracts, U.S.-based manufacturing, and scalable next-generation technology.
+
+Elf Labs
+
+Elf Labs is an IP-focused entertainment company built on a strategy that has powered giants like Disney and Marvel: ownership of globally recognized character IP. After more than a decade of rights acquisition, the company controls 500+ protected trademarks and copyrights tied to iconic characters including Cinderella, Snow White, Rapunzel, Sleeping Beauty, and Peter Pan. This foundation has generated over $15 million in royalties, expanded licensing into 30+ countries, and supported development of 100+ product lines. With its Nasdaq ticker ($ELFS) reserved and valuation growth exceeding 1,600% in under two years, Elf Labs is now scaling distribution through patented production systems, global licensing, and streaming and mobile initiatives—offering investors exposure to a private entertainment company with a clear public-market trajectory.
+
+Valley Center Wellness
+
+Valley Center Wellness is setting a new benchmark in luxury behavioral health with its flagship facility in Corona, California. Designed as a private, resort-style wellness retreat on a 4.2-acre estate, the center combines discretion, comfort, and comprehensive care, offering patients private chefs, daily massages, acupuncturist sessions, and access to a pool, spa, gym, and basketball court. Focused on high-profile and affluent clients, Valley Wellness provides fully customized treatment plans outside the constraints of insurance, emphasizing long-term recovery, holistic wellness, and life-after-addiction strategies. Through its three-stage care model—including residential, outpatient, and transitional housing—patients experience continuity of care that supports lasting change. For investors, Valley Wellness has launched an equity crowdfunding opportunity, offering a way to participate in a fast-growing $42 billion behavioral health sector while gaining exposure to both high-end real estate and a premium healthcare business.
+
+Immersed
+
+Immersed is a private, pre-IPO technology company operating at the intersection of AI, spatial computing, and remote work. Best known for building the most widely used productivity app on the Meta Quest platform, Immersed enables professionals and teams to work full-time in shared virtual environments across macOS, Windows, and Linux. The company is expanding beyond software with its own productivity-focused XR headset and AI tools, supported by partnerships with major technology firms including Meta, Samsung, and Qualcomm. Immersed is currently allowing retail investors to participate in its pre-IPO round, subject to eligibility and offering terms.
+
+Arrived
+
+Backed by Jeff Bezos, Arrived Homes makes real estate investing accessible with a low barrier to entry. Investors can buy fractional shares of single-family rentals and vacation homes starting with as little as $100. This allows everyday investors to diversify into real estate, collect rental income, and build long-term wealth without needing to manage properties directly.
+
+Masterworks
+
+Masterworks enables investors to diversify into blue-chip art, an alternative asset class with historically low correlation to stocks and bonds. Through fractional ownership of museum-quality works by artists like Banksy, Basquiat, and Picasso, investors gain access without the high costs or complexities of owning art outright. With hundreds of offerings and strong historical exits on select works, Masterworks adds a scarce, globally traded asset to portfolios seeking long-term diversification.
+
+Rex Shares
+
+REX Shares designs specialized ETFs for investors who want more precision than traditional broad-market funds can offer. Its lineup spans options-based income strategies, leveraged and inverse exposures, spot-linked crypto ETFs, and thematic funds tied to structural trends. By targeting specific income objectives, volatility profiles, or market themes, these ETFs can be used alongside core holdings to introduce differentiated return drivers and reduce reliance on a single market outcome, while maintaining the liquidity and transparency of the ETF structure.
+
+Motley Fool
+
+Motley Fool Asset Management brings its long-standing "Foolish" investing philosophy into a lineup of passive ETFs designed around clear, rules-based investment styles. Built using decades of proprietary research from The Motley Fool, LLC, these factor-based ETFs focus on growth, value, and momentum strategies, selecting U.S. companies based on quality, risk, and long-term potential. For investors who want professionally vetted stock exposure without the demands of active trading, Motley Fool Asset Management offers a straightforward way to access expert-driven strategies through the simplicity and liquidity of an ETF.
+
+Finance Advisors
+
+Finance Advisors helps Americans approach retirement with greater clarity by connecting them to vetted, fiduciary financial advisors who specialize in tax-aware retirement planning. Rather than focusing on products or investment performance alone, the platform emphasizes strategies that account for after-tax income, withdrawal sequencing, and long-term tax efficiency—factors that can materially impact retirement outcomes. Free to use, Finance Advisors gives individuals with meaningful savings access to a level of planning sophistication historically reserved for high-net-worth households, helping reduce hidden tax risk and improve long-term financial confidence.
+
+Public
+
+Public is a multi-asset investing platform built for long-term investors who want more control, transparency, and innovation in how they grow wealth. Founded in 2019 as the first broker-dealer to offer commission-free, real-time fractional investing, Public now lets users invest in stocks, bonds, options, crypto, and more—all in one place. Its latest feature, Generated Assets, uses AI to turn a single idea into a fully customized, investable index that can be explained and backtested before committing capital. Combined with AI-powered research tools, clear explanations of market moves, and an uncapped 1% match for transferring an existing portfolio, Public positions itself as a modern platform designed to help serious investors make more informed decisions with context.
+
+Money Pickle
+
+Money Pickle helps people connect with vetted fiduciary financial advisors—professionals who are legally obligated to act in their clients' best interests. Through a quick online quiz, users are matched with a fiduciary for a complimentary, no-obligation one-on-one strategy session tailored to goals like retirement planning, investing, tax strategy, or getting financially organized. With no upfront costs and no sales pressure, Money Pickle removes the friction and uncertainty from finding trustworthy advice, making personalized financial guidance accessible whether you're building wealth, preserving it, or planning for the future.
+
+Atari
+
+Atari is bringing its iconic legacy into the physical world with the launch of the first-ever Atari Hotel, a construction-ready gaming and entertainment destination in downtown Phoenix. The Atari Hotel Phoenix blends immersive gaming, live events, dining, and technology-driven experiences into a next-generation hospitality concept, backed by secured land, licensing, and development partners. Through a Regulation A+ offering, investors can own a direct stake in the land, building, and branded hotel starting at $500, with targeted returns including a 15% preferred return and a projected 5.8x multiple. As gaming and experiential travel continue to converge, this opportunity allows everyday investors to participate alongside developers in transforming a legendary brand into a real-world destination.
+
+AdviserMatch
+
+AdviserMatch is a free online tool that helps individuals connect with financial advisors based on their goals, financial situation, and investment needs. Instead of spending hours researching advisors on your own, the platform asks a few quick questions and matches you with professionals who can assist with areas like retirement planning, investment strategy, and overall financial guidance. Consultations are no-obligation, and services vary by advisor, giving investors a chance to explore whether professional advice could help improve their long-term financial plan.
+
+Image: Imagn
+
+This article Larry Ellison Leaves Hawaii, Declares $173M Florida Compound His Official Residence — Minutes From Trump's Mar-a-Lago originally appeared on Benzinga.com
+
+© 2026 Benzinga.com. Benzinga does not provide investment advice. All rights reserved.
+
+---
+AMD | When not to buy the dip on AI, software stocks: Strategist | matchs:1
+00:00 Speaker A
+
+Okay, so let's talk about some areas that have been hit. I know that you've been adding to the likes of Microsoft, which is on that list of stocks that's been hit. Palantier, um, which has come back a little bit, but is still down, um, from its highs. Um, you know, and of course, there is still this big debate ongoing about which software stocks are going to be disrupted. I don't often hear Microsoft on on that list, but of course it it has sold off with the rest of software.
+
+00:27 Nancy
+
+Yeah. Well, and we added to service now, which is a harder one to swallow because it's been popping around. though it did it did have a nice move up. Here's the way I see it. Uh, I think I've talked to you about Adobe. We exited the stock about a year and a half ago. might have been a little bit longer. Uh and one of the things that stuck out to me is that you had a stock that had underperformed the S&P, uh not not just underperformed, but had a negative cumulative return of about 30% over the last five years. But you had a CEO who many celebrate, and I think he did a lot of things right in the previous 10 years, uh but he got paid $220 million during that period. and the company missed the pivot. Think Intel, think Xerox. And so I I think that is the kind of company you want to stay away from. I would not buy the dip. Uh that's not to say it won't get a dead cat bounce rally at some point. Um but I think names like that, see uh CRM Salesforce are names we've we've shifted away from and focused on the integrated players, the ones that we think are going to succeed over the long-term and even see margin expansion as well as the cybersecurity names. We also added to CrowdStrike during the during the sell-off.
+
+01:54 Speaker A
+
+Oh, interesting. And I, you know, you've been a broadcom fan from way back, Nancy, on the on the supplier side, right? The companies that are a sort of infrastructure for AI here. Um, and, you know, the it has been pretty interesting within even those sort of AI leverage plays that do well, the numbers look good. We haven't always seen the stocks perform. Um, and what do you think is going to need to change in the market sort of mentality to that maybe means that companies will get rewarded a little more consistently?
+
+02:40 Nancy
+
+I I think they just need to keep putting up earnings. I mean, in the case of Broadcom, it's it has dramatically outperformed if you look over a three to five-year period. Uh, same with Nvidia, I I would even argue AMD, we own all three. Um, but but I think what you need to see is investors return to fundamentals. And if you go back and look over the last few years, we've sort of seen the Russell 2000, 1000 value uh stocks, so think consumer staples, some electric utilities, we've seen those surge in the first quarter, first half of the year. and then we've seen the market return to um, growthier and and in some cases you could argue argue defensive uh technology names. I mean, that's why we own Apple. Well, there's a lot of reasons why we own it, but it is sort of the treasury bill of of our tech holdings and we added to that a number of weeks back as well. So, I think that's what investors need to think about is looking forward and not buying into the short-term narrative. You and I talk about it and it's important, but they shouldn't be investing their portfolios accordingly.
+
+---
+AMD | Another deep tech chip startup becomes a unicorn: Frore hits $1.64B | matchs:1
+Eight-year-old semiconductor startup Frore Systems has raised a $143 million Series D, led by MVP Ventures, at $1.64 billion valuation, the company announced on Monday.
+
+Frore has now raised $340 million total, the company said. Frore doesn’t make the chips themselves; it makes liquid-cooling systems for them. Founded by two former Qualcomm engineers, the company’s tech was initially created to offer air-cooling tech for phones and other small fanless electronics.
+
+The company’s focus on chips was inspired by Nvidia CEO Jensen Huang, who received a demo of the technology about two years ago, Bloomberg reported. Huang suggested they develop liquid-cooling options, the new must-have for AI chips and systems. So they did, releasing products that work with various Nvidia chips and boards. The company has also developed products for Qualcomm and AMD.
+
+AI semiconductors have been a hot area for investment. Other new unicorns in the field include Nvidia competitor Positron, which hit a $1 billion valuation in February, and Recursive Intelligence, which landed a $4 billion valuation right out of the gate. Eridu just launched, too, with a $200 million Series A round (though it declined to disclose its valuation), to build new AI networking chips.
+
+Participating investors in Frore’s latest round include Fidelity, Mayfield, Addition, Qualcomm Ventures, and Alumni Ventures, among others.
+
+---
+AMD | Week ahead: Investors face busy week as Fed and tech take center stage | matchs:1
+Week ahead: Investors face busy week as Fed and tech take center stage Proactive uses images sourced from Shutterstock
+
+Wall Street is gearing up for a jam-packed week, with investors juggling central bank moves, major tech events, and a flood of corporate earnings.
+
+The spotlight will be on the Federal Reserve on Wednesday, when Chair Jerome Powell announces the latest interest rate decision, followed by his press conference. Market watchers are largely expecting the Fed to hold rates steady. “We think the Fed will maintain a wait-and-see approach in the fog of current geopolitical tensions,” said Kathleen Brooks, research director at XTB. Earlier in the day, the February Producer Price Index could offer extra clues on inflation trends.
+
+Tech investors have their eyes on San Jose, where Nvidia’s four-day GTC conference kicks off. CEO Jensen Huang is set to deliver the keynote, with appearances from Microsoft, Meta Platforms, and Tesla likely to influence chipmakers such as AMD, Taiwan Semiconductor, Broadcom, and Intel.
+
+Corporate earnings also promise fireworks. Micron Technology Inc (NASDAQ:MU), FedEx Corp (NYSE:FDX, XETRA:FDX), Alibaba Group (NYSE:BABA), Lululemon Athletica Inc (NASDAQ:LULU), and General Mills Inc (NYSE:GIS, XETRA:GRM) are all due to report results, giving investors fresh signals on consumer and tech demand. Meanwhile, Friday’s “triple witching” options expiration and the expiry of WTI April crude futures could add extra volatility.
+
+Oil remains in the headlines as the Middle East conflict stretches into its third week. Brent crude is just below $105 per barrel, after oil prices rose more than 1% at the start of the week. “The Strait of Hormuz remains closed, but diplomatic efforts give a glimmer of hope for safe passage of oil tankers,” Brooks noted.
+
+Still, risks of a broader supply disruption could push prices higher, keeping markets on edge. “With oil prices near $100 per barrel, recent energy shocks could create upward pressure on inflation, but projected tax benefits from the One Big Beautiful Bill Act may still offset some of the drag on consumer spending,” analysts at Deutsche Bank noted.
+
+Analysts expect central banks to play it cautious this week. “Although rate hikes are not imminent, policymakers are likely to stress the need to stay vigilant on energy prices and inflation,” said Deutsche Bank. Ipek Ozkardeskaya, senior analyst at Swissquote, echoed that view: “No rate cuts this week in the US—and possibly none this year—especially if the war continues and keeps energy prices elevated.”
+
+Investors are bracing for a week where geopolitics, inflation, and central bank policy collide, and short-term signals for stocks remain mixed. Powell’s guidance on how the Fed plans to navigate the oil shock, labor market volatility, and inflation pressures could set the tone for markets in the weeks ahead.
+
+---
+AMD | Broadcom Expands AI Data Center Role With New Hardware And Standards | matchs:1
+Get insights on thousands of stocks from the global community of over 7 million individual investors at Simply Wall St.
+
+Broadcom (NasdaqGS:AVGO) has introduced its Taurus 400G/lane optical DSP and Tomahawk 6 AI switch family, expanding its AI data center hardware lineup.
+
+The company is helping launch the Optical Compute Interconnect open standard with partners including AMD, Meta, Microsoft, Nvidia, and OpenAI.
+
+These developments aim to support higher bandwidth connectivity, power efficiency, and multi vendor interoperability for hyperscale AI data centers.
+
+Broadcom is already a key name in AI infrastructure, and this latest product and standards push reinforces that role. The share price sits at $322.16, with a 1 year return of 67.1% and a very large 3 year gain. This indicates that investors have been responding to the company’s position in high demand segments. In that context, new AI focused launches can be important signposts for how Broadcom is trying to extend its role in data center connectivity.
+
+For you as an investor, this news mainly relates to how future AI data centers might be wired and cooled, and who sets the rules for that hardware. The Taurus DSP, Tomahawk 6 at scale, and the OCI open standard together point to a push for multi vendor systems that can support rising AI workloads while aiming to manage power and performance. How these efforts relate to adoption, competitive positioning, and long term demand for Broadcom’s products will be key areas to monitor over time.
+
+Stay updated on the most important news stories for Broadcom by adding it to your watchlist or portfolio. Alternatively, explore our Community to discover new perspectives on Broadcom.
+
+NasdaqGS:AVGO Earnings & Revenue Growth as at Mar 2026
+
+We've flagged 2 risks for Broadcom. See which could impact your investment.
+
+Quick Assessment
+
+✅ Price vs Analyst Target : At US$322.16, the share price sits about 31% below the US$467.80 analyst consensus target.
+
+⚖️ Simply Wall St Valuation : Shares are trading close to estimated fair value, so the stock screens as fairly valued on the DCF model.
+
+❌ Recent Momentum: The 30 day return of roughly 0.9% decline shows recent price pressure despite the AI product news.
+
+There is only one way to know the right time to buy, sell or hold Broadcom. Head to Simply Wall St's company report for the latest analysis of Broadcom's fair value.
+
+Key Considerations
+
+---
+JPM | Sector Update: Financial Stocks Higher Late Afternoon | matchs:0
+Financial stocks were advancing in late Monday afternoon trading, with the NYSE Financial Index risi
+
+Upgrade to read this MT Newswires article and get so much more.
+
+A Silver or Gold subscription plan is required to access premium news articles.
+
+---
+JPM | Broadcom (AVGO) Witnessing Continued Momentum in AI Semiconductor Segment | matchs:2
+Broadcom Incorporated (NASDAQ:AVGO) is one of the 15 AI stocks that are quietly making investors rich.
+
+As of the March 11 closing, Broadcom Incorporated (NASDAQ:AVGO) carried a strongly bullish consensus sentiment. The stock has received coverage from 29 analysts, 27 of whom assigned Buy ratings and 2 gave Hold calls. With no Sell rating, it has a projected median 1-year price target of $467.68, which leads to an upside potential of almost 37% at the current level.
+
+On March 5, JPMorgan increased the firm’s price target on Broadcom Incorporated (NASDAQ:AVGO) from $475 to $500, resulting in an adjusted upside potential of more than 46% for investors. The firm maintained an Overweight rating on the shares after the company reported better-than-expected January quarter results.
+
+JPMorgan noted that Broadcom Incorporated (NASDAQ:AVGO) also issued a solid revenue outlook for the April quarter, reflecting continued business momentum. The firm also added that the company is seeing ongoing strength in its AI segment.
+
+On March 5, Jim Kelleher from Argus also raised the firm’s price target on Broadcom Incorporated (NASDAQ:AVGO) from $375 to $425. The analyst reiterated his Buy rating on the shares, which offer a revised upside potential of more than 24%.
+
+Broadcom Incorporated (NASDAQ:AVGO) is a technology company and a global supplier of semiconductor devices and infrastructure software services. The company delivers networking connectivity, wireless device connectivity, and servers and storage solutions. It also has an extensive suite of private cloud offerings such as VMware Cloud Foundation, Edge, telco cloud platform, private AI, and more.
+
+While we acknowledge the potential of AVGO as an investment, we believe certain AI stocks offer greater upside potential and carry less downside risk. If you’re looking for an extremely undervalued AI stock that also stands to benefit significantly from Trump-era tariffs and the onshoring trend, see our free report on the best short-term AI stock.
+
+READ NEXT: 33 Stocks That Should Double in 3 Years and 15 Stocks That Will Make You Rich in 10 Years.
+
+Disclosure: None. Follow Insider Monkey on Google News.
+
+---
+JPM | Sector Update: Financial Stocks Higher Monday Afternoon | matchs:0
+Financial stocks were advancing in Monday afternoon trading, with the NYSE Financial Index rising 1.
+
+Upgrade to read this MT Newswires article and get so much more.
+
+A Silver or Gold subscription plan is required to access premium news articles.
+
