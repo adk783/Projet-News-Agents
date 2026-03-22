@@ -5,3 +5,6 @@ pipeline.log
 # Ignorer les dossiers cachés de Python
 __pycache__/
 *.pyc  
+# Model and outputs
+uncertainty_model/
+metrics_plots/

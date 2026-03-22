@@ -1,3 +1,10 @@
 yfinance
 newspaper3k
 lxml_html_clean
+trafilatura
+transformers
+torch
+peft
+datasets
+pandas
+requests
