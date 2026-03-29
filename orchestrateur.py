@@ -3,6 +3,7 @@ import logging
 import time
 from agent_sentiment import analyser_article
 from agent_agregateur import calculer_score_ticker
+from status_manager import write_status
 
 # ─── LOGGING ───────────────────────────────────────────────────────────────────
 logger = logging.getLogger("Orchestrateur")
@@ -104,10 +105,11 @@ def run_orchestrateur():
 
     # 3. Traitement article par article
     tickers_traites = set()
-
+    write_status("orchestrateur", {"running": True, "article_actuel": "", "done": 0, "total": len(articles)})
     for article in articles:
         url, ticker, title, content, date_utc = article
 
+        write_status("orchestrateur", {"running": True, "article_actuel": title[:60], "done": list(articles).index(article), "total": len(articles)})
         logger.info(f"Analyse en cours : [{ticker}] {title}")
 
         try:
@@ -159,6 +161,7 @@ def run_orchestrateur():
         except Exception as e:
             logger.error(f"Erreur agrégation pour {ticker} : {e}")
 
+    write_status("orchestrateur", {"running": False, "article_actuel": "Terminé", "done": len(articles), "total": len(articles)})
     conn.close()
     logger.info("=== Orchestrateur terminé ===")
 

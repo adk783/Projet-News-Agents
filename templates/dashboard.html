@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentiment Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:        #0a0c0f;
+    --surface:   #111318;
+    --border:    #1e2129;
+    --text:      #c9d1d9;
+    --muted:     #484f58;
+    --bullish:   #3fb950;
+    --bearish:   #f85149;
+    --neutral:   #8b949e;
+    --accent:    #58a6ff;
+    --high:      #3fb950;
+    --normal:    #d29922;
+    --low:       #f85149;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-sans: 'IBM Plex Sans', sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID NOISE BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(88,166,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(88,166,255,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative; z-index: 1;
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+    background: rgba(17,19,24,.9);
+    backdrop-filter: blur(8px);
+  }
+  .logo {
+    font-family: var(--font-mono);
+    font-size: .85rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    color: var(--accent);
+  }
+  .logo span { color: var(--muted); }
+  #live-clock {
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    color: var(--muted);
+  }
+
+  /* ── LAYOUT ── */
+  main {
+    position: relative; z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: .75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: .6rem;
+    font-family: var(--font-mono);
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .panel-header .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .panel-body { padding: 1.25rem; }
+
+  /* ── CONTROL PANEL ── */
+  .sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .stats-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
+  }
+  .stat-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .75rem 1rem;
+  }
+  .stat-val {
+    font-family: var(--font-mono);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .stat-label {
+    font-size: .7rem;
+    color: var(--muted);
+    margin-top: .2rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  label {
+    display: block;
+    font-size: .72rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    margin-bottom: .5rem;
+  }
+  .ticker-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .6rem .9rem;
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color .2s;
+  }
+  .ticker-input:focus { border-color: var(--accent); }
+
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: .75rem;
+  }
+  .toggle-label { font-size: .78rem; color: var(--text); }
+  .toggle {
+    position: relative; width: 36px; height: 20px;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; inset: 0;
+    background: var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: .2s;
+  }
+  .slider::before {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    left: 3px; bottom: 3px;
+    background: var(--muted);
+    border-radius: 50%;
+    transition: .2s;
+  }
+  input:checked + .slider { background: var(--accent); }
+  input:checked + .slider::before { transform: translateX(16px); background: white; }
+
+  .loop-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .5rem .8rem;
+    font-family: var(--font-mono);
+    font-size: .8rem;
+    color: var(--text);
+    outline: none;
+    margin-top: .5rem;
+    display: none;
+  }
+  .loop-input.visible { display: block; }
+
+  .btn {
+    width: 100%;
+    padding: .65rem 1rem;
+    border-radius: 6px;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    cursor: pointer;
+    transition: all .2s;
+    text-transform: uppercase;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0c0f;
+  }
+  .btn-primary:hover { background: #79c0ff; transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    margin-top: .5rem;
+  }
+  .btn-secondary:hover { background: rgba(88,166,255,.08); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+  #run-status {
+    font-family: var(--font-mono);
+    font-size: .7rem;
+    color: var(--bullish);
+    min-height: 1.2rem;
+    margin-top: .5rem;
+    text-align: center;
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  /* ── TICKER CARDS ── */
+  .ticker-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+  .ticker-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .ticker-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 8px 8px 0 0;
+    transition: .2s;
+  }
+  .ticker-card.bullish::before { background: var(--bullish); }
+  .ticker-card.bearish::before { background: var(--bearish); }
+  .ticker-card.neutral::before { background: var(--neutral); }
+  .ticker-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .ticker-card.active { border-color: var(--accent); }
+
+  .tc-symbol {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: .3rem;
+  }
+  .tc-sentiment {
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: .6rem;
+  }
+  .tc-sentiment.bullish { color: var(--bullish); }
+  .tc-sentiment.bearish { color: var(--bearish); }
+  .tc-sentiment.neutral { color: var(--neutral); }
+  .tc-sentiment.insufficient { color: var(--muted); }
+
+  .tc-score-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: .5rem;
+    overflow: hidden;
+  }
+  .tc-score-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width .6s ease;
+  }
+  .bullish .tc-score-fill { background: var(--bullish); }
+  .bearish .tc-score-fill { background: var(--bearish); }
+  .neutral .tc-score-fill { background: var(--neutral); }
+
+  .tc-meta {
+    display: flex; justify-content: space-between;
+    font-size: .68rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+  .tc-confidence {
+    font-size: .63rem;
+    padding: .15rem .4rem;
+    border-radius: 3px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .conf-high   { background: rgba(63,185,80,.12);  color: var(--high); }
+  .conf-normal { background: rgba(210,153,34,.12); color: var(--normal); }
+  .conf-low    { background: rgba(248,81,73,.12);  color: var(--low); }
+  .conf-insufficient { background: rgba(139,148,158,.1); color: var(--muted); }
+
+  /* ── CHARTS ── */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 700px) { .charts-row { grid-template-columns: 1fr; } }
+  .chart-wrap { padding: 1rem; height: 220px; position: relative; }
+
+  /* ── ARTICLE TABLE ── */
+  .article-filter {
+    display: flex; gap: .5rem;
+    padding: 0 1.25rem 1rem;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: .3rem .8rem;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: .7rem;
+    cursor: pointer;
+    transition: .2s;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .filter-btn.active, .filter-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(88,166,255,.06);
+  }
+
+  .article-list { padding: 0 1.25rem 1.25rem; }
+  .article-item {
+    display: grid;
+    grid-template-columns: 80px 1fr 70px;
+    gap: .75rem;
+    align-items: start;
+    padding: .85rem 0;
+    border-bottom: 1px solid var(--border);
+    transition: .15s;
+  }
+  .article-item:last-child { border-bottom: none; }
+  .article-item:hover { background: rgba(88,166,255,.03); margin: 0 -.5rem; padding-left: .5rem; padding-right: .5rem; border-radius: 4px; }
+
+  .ai-badge {
+    font-family: var(--font-mono);
+    font-size: .65rem;
+    font-weight: 600;
+    padding: .2rem .5rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .ai-badge.bullish { background: rgba(63,185,80,.12); color: var(--bullish); }
+  .ai-badge.bearish { background: rgba(248,81,73,.12); color: var(--bearish); }
+  .ai-badge.neutral { background: rgba(139,148,158,.1); color: var(--neutral); }
+
+  .ai-title {
+    font-size: .8rem;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: .25rem;
+  }
+  .ai-reasoning {
+    font-size: .7rem;
+    color: var(--muted);
+    line-height: 1.4;
+    font-style: italic;
+  }
+  .ai-score {
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    font-weight: 600;
+    text-align: right;
+  }
+  .ai-score.bullish { color: var(--bullish); }
+  .ai-score.bearish { color: var(--bearish); }
+  .ai-score.neutral { color: var(--neutral); }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+    font-size: .82rem;
+    font-family: var(--font-mono);
+  }
+  .empty .empty-icon { font-size: 2rem; margin-bottom: .75rem; opacity: .4; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SENTIMENT<span>/</span>DASHBOARD</div>
+  <div id="live-clock">--:--:--</div>
+</header>
+
+<main>
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <!-- Stats -->
+    <div class="panel">
+      <div class="panel-header"><span class="dot"></span>Base de données</div>
+      <div class="panel-body">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-val" id="s-total">–</div>
+            <div class="stat-label">Articles</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="s-analysed">–</div>
+            <div class="stat-label">Analysés</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="s-pending">–</div>
+            <div class="stat-label">En attente</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="s-scores">–</div>
+            <div class="stat-label">Scores</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pipeline control -->
+    <div class="panel">
+      <div class="panel-header"><span class="dot"></span>Lancer le pipeline</div>
+      <div class="panel-body" style="display:flex;flex-direction:column;gap:1rem;">
+
+        <div>
+          <label>Tickers (séparés par virgule)</label>
+          <input class="ticker-input" id="ticker-input" type="text" placeholder="AAPL, MSFT, TSLA" value="AAPL, MSFT, TSLA">
+        </div>
+
+        <div>
+          <div class="toggle-row">
+            <span class="toggle-label">Mode Loop</span>
+            <label class="toggle">
+              <input type="checkbox" id="loop-toggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <input class="loop-input" id="loop-interval" type="number" min="20" placeholder="Intervalle (min, ≥ 20)">
+        </div>
+
+        <div>
+<button class="btn btn-primary" id="btn-sourcing" onclick="runPipeline('sourcing')">
+  ▶ Lancer le Sourcing
+</button>
+<div id="progress-sourcing" style="display:none; margin-top:.75rem">
+  <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+    <span style="font-size:.7rem;color:var(--muted);font-family:var(--font-mono)" id="label-sourcing">Sourcing...</span>
+    <span style="font-size:.7rem;color:var(--accent);font-family:var(--font-mono)" id="pct-sourcing">0%</span>
+  </div>
+  <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+    <div id="bar-sourcing" style="height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .4s ease"></div>
+  </div>
+</div>
+
+<button class="btn btn-secondary" id="btn-orchestrateur" onclick="runPipeline('orchestrateur')" style="margin-top:.5rem">
+  ▶ Lancer l'Orchestrateur
+</button>
+<div id="progress-orchestrateur" style="display:none; margin-top:.75rem">
+  <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+    <span style="font-size:.7rem;color:var(--muted);font-family:var(--font-mono)" id="label-orchestrateur">Analyse...</span>
+    <span style="font-size:.7rem;color:var(--accent);font-family:var(--font-mono)" id="pct-orchestrateur">0%</span>
+  </div>
+  <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+    <div id="bar-orchestrateur" style="height:100%;background:var(--bullish);border-radius:2px;width:0%;transition:width .4s ease"></div>
+  </div>
+</div>
+
+<div id="run-status"></div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── RIGHT ── -->
+  <div class="right">
+
+    <!-- Ticker cards -->
+    <div class="panel">
+      <div class="panel-header"><span class="dot"></span>Scores par ticker</div>
+      <div class="ticker-cards" id="ticker-cards">
+        <div class="empty"><div class="empty-icon">📊</div>Aucune donnée</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <div class="panel">
+        <div class="panel-header"><span class="dot"></span>Répartition sentiment</div>
+        <div class="chart-wrap">
+          <canvas id="chart-pie"></canvas>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="dot"></span>Évolution du score</div>
+        <div class="chart-wrap">
+          <canvas id="chart-history"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Articles -->
+    <div class="panel">
+      <div class="panel-header"><span class="dot"></span>Articles analysés</div>
+      <div class="article-filter" id="article-filters"></div>
+      <div class="article-list" id="article-list">
+        <div class="empty"><div class="empty-icon">📰</div>Aucun article</div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ── CLOCK ──────────────────────────────────────────────────────────────────────
+function updateClock() {
+  document.getElementById('live-clock').textContent =
+    new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let selectedTicker = null;
+let pieChart = null;
+let histChart = null;
+
+// ── LOOP TOGGLE ────────────────────────────────────────────────────────────────
+document.getElementById('loop-toggle').addEventListener('change', function() {
+  document.getElementById('loop-interval').classList.toggle('visible', this.checked);
+});
+
+// ── STATS ──────────────────────────────────────────────────────────────────────
+async function loadStats() {
+  const d = await fetch('/api/stats').then(r => r.json());
+  document.getElementById('s-total').textContent    = d.total_articles;
+  document.getElementById('s-analysed').textContent = d.analysed;
+  document.getElementById('s-pending').textContent  = d.pending;
+  document.getElementById('s-scores').textContent   = d.scores;
+}
+
+// ── TICKER CARDS ───────────────────────────────────────────────────────────────
+async function loadTickerCards() {
+  const scores = await fetch('/api/ticker_scores').then(r => r.json());
+  const container = document.getElementById('ticker-cards');
+
+  if (!scores.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>Aucune donnée</div>';
+    return;
+  }
+
+  container.innerHTML = scores.map(s => {
+    const sent      = s.sentiment_global || 'insufficient';
+    const score     = s.score_global != null ? s.score_global : 0;
+    const scoreDisp = s.score_global != null ? score.toFixed(2) : '–';
+    const barWidth  = s.score_global != null ? (score * 100).toFixed(0) : 0;
+    const conf      = s.confidence || 'insufficient';
+    const nb        = s.nb_articles || 0;
+    return `
+      <div class="ticker-card ${sent}" onclick="selectTicker('${s.ticker}')" id="card-${s.ticker}">
+        <div class="tc-symbol">${s.ticker}</div>
+        <div class="tc-sentiment ${sent}">${sent === 'insufficient' ? 'no data' : sent}</div>
+        <div class="tc-score-bar"><div class="tc-score-fill" style="width:${barWidth}%"></div></div>
+        <div class="tc-meta">
+          <span>${scoreDisp}</span>
+          <span class="tc-confidence conf-${conf}">${conf}</span>
+        </div>
+        <div class="tc-meta" style="margin-top:.4rem">
+          <span>${nb} article${nb>1?'s':''}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Sélectionner le premier ticker par défaut
+  if (!selectedTicker && scores.length) {
+    selectTicker(scores[0].ticker);
+  }
+}
+
+// ── SELECT TICKER ──────────────────────────────────────────────────────────────
+async function selectTicker(ticker) {
+  selectedTicker = ticker;
+  document.querySelectorAll('.ticker-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('card-' + ticker);
+  if (card) card.classList.add('active');
+
+  await Promise.all([
+    loadPieChart(ticker),
+    loadHistoryChart(ticker),
+    loadArticles(ticker)
+  ]);
+}
+
+// ── PIE CHART ──────────────────────────────────────────────────────────────────
+async function loadPieChart(ticker) {
+  const data = await fetch('/api/sentiment_distribution?ticker=' + ticker).then(r => r.json());
+  const labels = data.map(d => d.sentiment);
+  const values = data.map(d => d.count);
+  const colors = labels.map(l =>
+    l === 'bullish' ? '#3fb950' : l === 'bearish' ? '#f85149' : '#8b949e'
+  );
+
+  if (pieChart) pieChart.destroy();
+  const ctx = document.getElementById('chart-pie').getContext('2d');
+  pieChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#8b949e', font: { family: 'IBM Plex Mono', size: 11 }, padding: 12 } }
+      },
+      cutout: '65%'
+    }
+  });
+}
+
+// ── HISTORY CHART ──────────────────────────────────────────────────────────────
+async function loadHistoryChart(ticker) {
+  const data = await fetch('/api/ticker_history?ticker=' + ticker).then(r => r.json());
+
+  if (histChart) histChart.destroy();
+  const ctx = document.getElementById('chart-history').getContext('2d');
+
+  const labels = data.map(d => new Date(d.calculated_at).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}));
+  const values = data.map(d => d.score_global);
+
+  histChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: ticker,
+        data: values,
+        borderColor: '#58a6ff',
+        backgroundColor: 'rgba(88,166,255,.08)',
+        fill: true,
+        tension: .4,
+        pointRadius: 4,
+        pointBackgroundColor: '#58a6ff',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { ticks: { color: '#484f58', font: { family: 'IBM Plex Mono', size: 10 } }, grid: { color: '#1e2129' } },
+        y: { min: 0, max: 1, ticks: { color: '#484f58', font: { family: 'IBM Plex Mono', size: 10 } }, grid: { color: '#1e2129' } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+// ── ARTICLES ───────────────────────────────────────────────────────────────────
+let articleFilter = 'all';
+
+async function loadArticles(ticker) {
+  const url = ticker ? '/api/article_scores?ticker=' + ticker : '/api/article_scores';
+  const data = await fetch(url).then(r => r.json());
+
+  // Filtres
+  const filters = document.getElementById('article-filters');
+  const sentiments = ['all', 'bullish', 'bearish', 'neutral'];
+  filters.innerHTML = sentiments.map(s => `
+    <button class="filter-btn ${articleFilter===s?'active':''}" onclick="setFilter('${s}')">
+      ${s === 'all' ? 'Tous (' + data.length + ')' : s}
+    </button>
+  `).join('');
+
+  const filtered = articleFilter === 'all' ? data : data.filter(a => a.sentiment === articleFilter);
+  const list = document.getElementById('article-list');
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📰</div>Aucun article</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(a => `
+    <div class="article-item">
+      <div>
+        <div class="ai-badge ${a.sentiment}">${a.sentiment}</div>
+      </div>
+      <div>
+        <div class="ai-title">${a.title}</div>
+        <div class="ai-reasoning">${a.reasoning}</div>
+      </div>
+      <div class="ai-score ${a.sentiment}">${a.score.toFixed(2)}</div>
+    </div>
+  `).join('');
+}
+
+function setFilter(f) {
+  articleFilter = f;
+  loadArticles(selectedTicker);
+}
+
+// ── RUN PIPELINE ───────────────────────────────────────────────────────────────
+async function runPipeline(type) {
+  const tickerRaw = document.getElementById('ticker-input').value;
+  const tickers   = tickerRaw.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
+  const loopOn    = document.getElementById('loop-toggle').checked;
+  const loopVal   = parseInt(document.getElementById('loop-interval').value) || null;
+
+  if (!tickers.length) {
+    document.getElementById('run-status').textContent = '⚠ Aucun ticker saisi';
+    return;
+  }
+
+  const btn = document.getElementById('btn-' + type);
+  btn.disabled = true;
+  document.getElementById('run-status').textContent = '⟳ Lancement...';
+
+  const res = await fetch('/api/run_pipeline', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tickers, pipeline: type, loop: loopOn ? loopVal : null })
+  }).then(r => r.json());
+
+  if (res.status === 'ok') {
+    document.getElementById('run-status').textContent = '✓ ' + res.message;
+  } else {
+    document.getElementById('run-status').textContent = '✗ ' + res.error;
+  }
+
+  setTimeout(() => { btn.disabled = false; }, 3000);
+}
+
+async function updateProgressBars() {
+  const s = await fetch('/api/pipeline_status').then(r => r.json());
+
+  const src = s.sourcing || {};
+  if (src.running) {
+    document.getElementById('progress-sourcing').style.display = 'block';
+    document.getElementById('btn-sourcing').disabled = true;
+    const pct = src.tickers_total > 0 ? Math.round((src.tickers_done / src.tickers_total) * 100) : 0;
+    document.getElementById('bar-sourcing').style.width = pct + '%';
+    document.getElementById('pct-sourcing').textContent = pct + '%';
+    document.getElementById('label-sourcing').textContent = src.ticker_actuel ? 'Scan : ' + src.ticker_actuel : 'Démarrage...';
+  } else if (src.tickers_done > 0) {
+    document.getElementById('progress-sourcing').style.display = 'block';
+    document.getElementById('bar-sourcing').style.width = '100%';
+    document.getElementById('pct-sourcing').textContent = '100%';
+    document.getElementById('label-sourcing').textContent = '✓ Terminé — ' + (src.articles_saved || 0) + ' articles';
+    document.getElementById('btn-sourcing').disabled = false;
+  }
+
+  const orc = s.orchestrateur || {};
+  if (orc.running) {
+    document.getElementById('progress-orchestrateur').style.display = 'block';
+    document.getElementById('btn-orchestrateur').disabled = true;
+    const pct = orc.total > 0 ? Math.round((orc.done / orc.total) * 100) : 0;
+    document.getElementById('bar-orchestrateur').style.width = pct + '%';
+    document.getElementById('pct-orchestrateur').textContent = pct + '%';
+    document.getElementById('label-orchestrateur').textContent = orc.article_actuel ? orc.article_actuel : 'Analyse...';
+  } else if (orc.done > 0) {
+    document.getElementById('progress-orchestrateur').style.display = 'block';
+    document.getElementById('bar-orchestrateur').style.width = '100%';
+    document.getElementById('pct-orchestrateur').textContent = '100%';
+    document.getElementById('label-orchestrateur').textContent = '✓ Terminé — ' + orc.done + ' articles analysés';
+    document.getElementById('btn-orchestrateur').disabled = false;
+  }
+}
+
+// ── REFRESH LOOP ───────────────────────────────────────────────────────────────
+async function refresh() {
+  await loadStats();
+  await loadTickerCards();
+  await updateProgressBars();
+}
+
+
+refresh();
+setInterval(refresh, 10000); // Refresh auto toutes les 10s
+</script>
+</body>
+</html>

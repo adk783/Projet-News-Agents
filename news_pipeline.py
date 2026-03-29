@@ -8,6 +8,7 @@ import logging
 import time
 import trafilatura
 import re
+from status_manager import write_status
 
 
 logger = logging.getLogger("NewsPipeline")
@@ -68,6 +69,7 @@ def is_relevant(title, keywords):
     return False
 
 def run_news_pipeline(tickers):
+    write_status("sourcing", {"running": True, "ticker_actuel": "", "tickers_done": 0, "tickers_total": len(tickers), "articles_saved": 0})
     logger.debug(f"Tickers à scanner : {tickers}")
     conn = sqlite3.connect('news_database.db')
     cursor = conn.cursor()
@@ -99,6 +101,7 @@ def run_news_pipeline(tickers):
     conn.commit()
     for ticker_symbol in tickers:
         logger.info(f"DÉTECTION : Scan des news pour {ticker_symbol}")
+        write_status("sourcing", {"running": True, "ticker_actuel": ticker_symbol, "tickers_done": tickers.index(ticker_symbol), "tickers_total": len(tickers), "articles_saved": cursor.execute("SELECT COUNT(*) FROM articles").fetchone()[0]})
         stock = yf.Ticker(ticker_symbol)
         sector = stock.info.get('sector', 'Inconnu')
         industry = stock.info.get('industry', 'Inconnu')
@@ -202,6 +205,7 @@ def run_news_pipeline(tickers):
                 logger.error(f"Erreur sauvegarde : {e}")
             time.sleep(2)
 
+    write_status("sourcing", {"running": False, "ticker_actuel": "Terminé", "tickers_done": len(tickers), "tickers_total": len(tickers), "articles_saved": cursor.execute("SELECT COUNT(*) FROM articles").fetchone()[0]})
     conn.close()
     logger.info("Fin du pipeline")
 

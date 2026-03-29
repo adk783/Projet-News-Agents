@@ -100,8 +100,14 @@ def calculer_score_ticker(cursor, conn, ticker):
         return
 
     # Calcul de la moyenne des scores
-    scores = [row[0] for row in resultats]
-    score_global = round(sum(scores) / len(scores), 4)
+    # APRÈS (correct)
+    scores_diriges = []
+    for score, sentiment in resultats:
+        if sentiment == "bearish":
+            scores_diriges.append(1 - score)
+        else:
+            scores_diriges.append(score)
+    score_global = round(sum(scores_diriges) / len(scores_diriges), 4)
 
     sentiment_global = get_sentiment_global(score_global)
     confidence       = get_confidence(nb_articles)
