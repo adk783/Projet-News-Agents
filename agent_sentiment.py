@@ -82,9 +82,9 @@ def appeler_ollama(prompt):
         "prompt": prompt,
         "stream": False,
         "options": {
-            "temperature": 0.1,   # Très bas pour des réponses cohérentes et reproductibles
+            "temperature": 0.0,   
             "top_p": 0.9,
-            "num_predict": 150    # On n'a besoin que d'un petit JSON
+            "num_predict": 150   
         }
     }
 
