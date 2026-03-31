@@ -52,9 +52,9 @@ PROMPT_PREFIX = "Assess the financial uncertainty in the following text: "
 MAX_LENGTH = 512
 
 # LoRA hyperparams
-LORA_R = 8
-LORA_ALPHA = 16
-LORA_DROPOUT = 0.1
+LORA_R = 16
+LORA_ALPHA = 32
+LORA_DROPOUT = 0.05
 
 # Loughran-McDonald lexicon URL (master dictionary CSV)
 LM_LEXICON_URL = (
@@ -155,22 +155,83 @@ def download_lm_uncertainty_lexicon() -> set:
 
 def compute_uncertainty_score(text: str, lexicon: set) -> float:
     """
-    Calcule un score d'incertitude [0, 1] basé sur la fréquence
-    des mots du lexique d'incertitude dans le texte.
+    Calcule un score d'incertitude [0, 1] basé sur plusieurs signaux :
+    1. Ratio de mots d'incertitude (lexique Loughran-McDonald)
+    2. Présence de phrases conditionnelles (if/whether/could/might...)
+    3. Hedging patterns (expressions de couverture)
+    4. Ancrage factuel (chiffres concrets réduisent l'incertitude)
 
-    Score = (nombre de mots d'incertitude / nombre total de mots)
-    Normalisé avec une fonction sigmoïde douce pour éviter les extrêmes.
+    Distribution cible :
+    - Articles factuels (résultats, chiffres) → 0.00 - 0.20
+    - Articles mixtes (analyse + données) → 0.20 - 0.50
+    - Articles spéculatifs modérés → 0.50 - 0.75
+    - Articles très incertains → 0.75 - 1.00
     """
     words = re.findall(r'\b[a-zA-Z]+\b', text.lower())
     if len(words) == 0:
         return 0.0
 
-    uncertainty_count = sum(1 for w in words if w in lexicon)
-    raw_ratio = uncertainty_count / len(words)
+    text_lower = text.lower()
+    n_words = len(words)
 
-    # Normalisation sigmoïde : transforme le ratio brut en score [0, 1]
-    # Le facteur 100 permet d'étaler la distribution (ratio typique ~0.01-0.05)
-    score = 1 / (1 + math.exp(-100 * (raw_ratio - 0.03)))
+    # ── Signal 1 : Ratio de mots d'incertitude (poids 50%) ──
+    uncertainty_count = sum(1 for w in words if w in lexicon)
+    raw_ratio = uncertainty_count / n_words
+    # Saturation à 2.5% (réaliste pour des articles financiers réels)
+    SATURATION_RATIO = 0.025
+    lexicon_score = min(raw_ratio / SATURATION_RATIO, 1.0)
+
+    # ── Signal 2 : Phrases conditionnelles et modales (poids 25%) ──
+    CONDITIONAL_PATTERNS = [
+        r'\bif\b', r'\bwhether\b', r'\bcould\b', r'\bmight\b', r'\bwould\b',
+        r'\bshould\b', r'\bperhaps\b', r'\bpossibly\b', r'\bpotentially\b',
+        r'\bit remains to be seen\b', r'\bremains unclear\b', r'\bhard to say\b',
+        r'\bdifficult to predict\b', r'\btime will tell\b',
+        r'\bon the other hand\b', r'\bhowever\b', r'\balthough\b',
+        r'\bdespite\b', r'\bnevertheless\b', r'\byet\b',
+        r'\bwe believe\b', r'\bwe expect\b', r'\bwe anticipate\b',
+        r'\banalysts expect\b', r'\banalysts predict\b',
+        r'\bgoing forward\b', r'\bin the near term\b', r'\bin the long run\b',
+    ]
+    conditional_hits = sum(1 for pat in CONDITIONAL_PATTERNS if re.search(pat, text_lower))
+    # Normaliser : 6+ patterns trouvés = score conditionnel maximal
+    conditional_score = min(conditional_hits / 6.0, 1.0)
+
+    # ── Signal 3 : Hedging / couverture (poids 15%) ──
+    HEDGING_PATTERNS = [
+        r'\bto some extent\b', r'\bmore or less\b', r'\bbroadly speaking\b',
+        r'\bgenerally\b', r'\btypically\b', r'\btends to\b',
+        r'\bmay or may not\b', r'\bnot necessarily\b', r'\bnot always\b',
+        r'\bsubject to\b', r'\bcontingent upon\b', r'\bdepending on\b',
+        r'\bassuming that\b', r'\bprovided that\b', r'\bunless\b',
+        r'\bbarring\b', r'\babsent\b',
+    ]
+    hedging_hits = sum(1 for pat in HEDGING_PATTERNS if re.search(pat, text_lower))
+    hedging_score = min(hedging_hits / 4.0, 1.0)
+
+    # ── Signal 4 : Ancrage factuel (réduit l'incertitude, poids -10%) ──
+    # Les articles avec beaucoup de données concrètes sont plus factuels
+    number_matches = re.findall(r'\$[\d,.]+|\d+\.?\d*\s*%|\d{1,3}(?:,\d{3})+|\b\d+\.\d+\b', text)
+    factual_density = len(number_matches) / max(n_words / 50.0, 1.0)  # chiffres par ~50 mots
+    factual_penalty = min(factual_density / 3.0, 0.3)  # max 0.3 de réduction
+
+    # ── Combinaison pondérée ──
+    raw_score = (
+        0.50 * lexicon_score +
+        0.25 * conditional_score +
+        0.15 * hedging_score
+        - 0.10 * factual_penalty  # les chiffres concrets réduisent l'incertitude
+    )
+
+    # Clamp à [0, 1]
+    raw_score = max(0.0, min(raw_score, 1.0))
+
+    # ── Transformation non-linéaire (sqrt) pour étaler la distribution ──
+    # Sans cette transformation, les scores se concentrent trop au milieu
+    score = math.sqrt(raw_score)
+
+    # Clamp final
+    score = max(0.0, min(score, 1.0))
 
     return round(score, 4)
 
@@ -213,8 +274,9 @@ def generate_weak_labels(db_path: str, lexicon: set, max_samples: int = None) ->
 
 def _generate_synthetic_data(lexicon: set) -> pd.DataFrame:
     """
-    Génère des données synthétiques d'entraînement si la base est vide.
-    Mix de textes à haute et basse incertitude financière.
+    Génère des données synthétiques d'entraînement.
+    Grand mix de textes à haute, moyenne et basse incertitude financière
+    pour créer un signal d'entraînement fort et varié.
     """
     high_uncertainty = [
         "The company's future remains uncertain as volatile market conditions could significantly "
@@ -237,6 +299,27 @@ def _generate_synthetic_data(lexicon: set) -> pd.DataFrame:
         "The preliminary assessment indicates roughly approximate figures that may deviate "
         "substantially from actual results. Risk factors including fluctuating exchange rates "
         "and unpredictable consumer behavior make reliable estimation nearly impossible.",
+
+        "It is unclear whether the proposed legislation could pass. Speculation mounts that "
+        "the uncertain regulatory environment might destabilize several vulnerable sectors. "
+        "Forecasts vary wildly and assumptions about consumer confidence remain untested.",
+
+        "Doubts persist about the company's ability to meet its projections amid volatile "
+        "currency markets. The risks are unpredictable, and the likelihood of a downturn "
+        "depends on contingent geopolitical developments that seem increasingly unstable.",
+
+        "There is considerable uncertainty surrounding the merger's outcome. Rumors suggest "
+        "possible delays, and estimates of synergy savings are speculative. Turbulent bond "
+        "markets and fluctuating interest rates add further unpredictability to forecasts.",
+
+        "Analysts hesitate to issue definitive guidance given the volatile macroeconomic "
+        "backdrop. Assumptions underlying current valuations may prove unreliable if "
+        "unforeseen risks materialize. The probability of recession remains an uncertain "
+        "variable that could suddenly alter investment outlooks.",
+
+        "The company cautioned that preliminary results might deviate from projections due "
+        "to unpredictable supply chain disruptions and fluctuating raw material costs. Risk "
+        "exposure is heightened by vulnerability to sudden policy shifts and uncertain demand.",
     ]
 
     low_uncertainty = [
@@ -259,6 +342,26 @@ def _generate_synthetic_data(lexicon: set) -> pd.DataFrame:
         "The infrastructure project was completed on time and within budget. Construction costs "
         "totaled $1.8 billion, and the facility is now fully operational with capacity utilization "
         "at 94%. Long-term contracts secured 85% of projected output through 2030.",
+
+        "Tesla delivered 1.2 million vehicles in Q4, a 12% increase from the previous quarter. "
+        "Net income rose to $3.4 billion. The Gigafactory in Texas reached full production "
+        "capacity, and the company confirmed its 2027 product roadmap on schedule.",
+
+        "Apple reported record iPhone sales of 89 million units. Services revenue reached "
+        "$25.3 billion, growing 18% year-over-year. The company authorized an additional "
+        "$110 billion share repurchase program and raised its quarterly dividend by 4%.",
+
+        "The S&P 500 closed at a new all-time high of 5,842 points. All eleven sectors "
+        "finished in positive territory. Trading volume was 11.2 billion shares, above the "
+        "20-day average. The VIX index dropped to 12.3, its lowest level this year.",
+
+        "Microsoft announced Q3 revenue of $62.0 billion, up 17% year-over-year. Azure cloud "
+        "revenue grew 29%. Operating income increased to $27.6 billion with margins expanding "
+        "to 44.5%. The company raised full-year guidance based on strong enterprise demand.",
+
+        "Alphabet reported advertising revenue of $68.1 billion, beating estimates by $2.4 billion. "
+        "YouTube ad revenue surged 21% to $9.2 billion. Google Cloud turned profitable for the "
+        "third consecutive quarter with $1.2 billion in operating income.",
     ]
 
     medium_uncertainty = [
@@ -273,6 +376,22 @@ def _generate_synthetic_data(lexicon: set) -> pd.DataFrame:
         "Consumer spending remained resilient despite inflation concerns. Retail sales data "
         "suggests continued momentum, although economists caution that rising interest rates "
         "might gradually moderate demand in interest-sensitive categories.",
+
+        "The pharmaceutical company received FDA approval for its new treatment. Revenue impact "
+        "is estimated at $2-4 billion annually, though adoption rates may vary across markets. "
+        "Some analysts suggest the competitive landscape could shift if rival treatments emerge.",
+
+        "Bank earnings beat expectations, driven by higher net interest income. However, "
+        "management warned that loan growth might slow if economic conditions soften, and "
+        "provisions for credit losses were increased as a precautionary measure.",
+
+        "The energy sector rallied on production cuts, though sustainability of price gains "
+        "depends on geopolitical factors. OPEC forecasts suggest demand growth, while some "
+        "independent analysts predict a possible oversupply scenario by mid-year.",
+
+        "Retail chains reported better-than-expected holiday sales. E-commerce grew 22%, "
+        "but brick-and-mortar stores faced variable performance across regions. Inventory "
+        "levels suggest cautious optimism, though consumer confidence surveys show mixed signals.",
     ]
 
     texts = high_uncertainty + low_uncertainty + medium_uncertainty
@@ -363,42 +482,124 @@ def build_model(base_model_name: str = BASE_MODEL):
 
 
 # ══════════════════════════════════════════════
-# 5. ENTRAÎNEMENT
+# 5. DATA AUGMENTATION
 # ══════════════════════════════════════════════
+
+def augment_text(text: str) -> str:
+    """
+    Augmentation de texte pour enrichir le dataset :
+    - Mélange aléatoire de phrases (shuffle)
+    - Suppression aléatoire de mots (dropout 10%)
+    """
+    import random as _rng
+
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+
+    # 50% chance de mélanger l'ordre des phrases
+    if len(sentences) > 2 and _rng.random() < 0.5:
+        _rng.shuffle(sentences)
+
+    result = " ".join(sentences)
+
+    # 10% word dropout (suppression aléatoire de mots)
+    words = result.split()
+    if len(words) > 10:
+        words = [w for w in words if _rng.random() > 0.10]
+    result = " ".join(words)
+
+    return result
+
+
+# ══════════════════════════════════════════════
+# 6. ENTRAÎNEMENT
+# ══════════════════════════════════════════════
+
+CSV_TRAINING_DATA = "./training_data.csv"
 
 def train_model(
     db_path: str = "news_database.db",
     output_dir: str = MODEL_OUTPUT_DIR,
-    epochs: int = 5,
-    batch_size: int = 8,
-    learning_rate: float = 2e-4,
+    epochs: int = 50,
+    batch_size: int = 16,
+    learning_rate: float = 3e-5,
     max_samples: int = None,
 ):
     """
-    Pipeline complet d'entraînement :
+    Pipeline complet d'entraînement amélioré :
     1. Charge le lexique
-    2. Génère les weak labels
-    3. Construit le modèle FinBERT + LoRA
-    4. Entraîne en régression (MSE)
-    5. Sauvegarde le modèle
+    2. Combine les données : articles réels + CSV synthétique massif + inline
+    3. Applique la data augmentation (x3 le dataset)
+    4. Construit le modèle FinBERT + LoRA
+    5. Entraîne en régression (MSE) — 50 époques, GPU optimisé
+    6. Sauvegarde le modèle fusionné
     """
+    import random as _rng
+    _rng.seed(42)
+
     # 1. Lexique
     lexicon = download_lm_uncertainty_lexicon()
 
-    # 2. Weak labels
+    # 2a. Weak labels depuis les vrais articles
     df = generate_weak_labels(db_path, lexicon, max_samples=max_samples)
 
-    # 3. Modèle
+    # 2b. Données synthétiques inline (27 exemples)
+    synthetic_df = _generate_synthetic_data(lexicon)
+    synthetic_df["text"] = synthetic_df["content"]
+    synthetic_df["score"] = synthetic_df["text"].apply(
+        lambda t: compute_uncertainty_score(t, lexicon)
+    )
+    synthetic_df = synthetic_df[["text", "score"]]
+    df = pd.concat([df, synthetic_df], ignore_index=True)
+
+    # 2c. Dataset CSV massif (600+ exemples) si disponible
+    if os.path.exists(CSV_TRAINING_DATA):
+        logger.info(f"Chargement du dataset CSV : {CSV_TRAINING_DATA}")
+        csv_df = pd.read_csv(CSV_TRAINING_DATA)
+        csv_df["score"] = csv_df["text"].apply(
+            lambda t: compute_uncertainty_score(t, lexicon)
+        )
+        csv_df = csv_df[["text", "score"]]
+        df = pd.concat([df, csv_df], ignore_index=True)
+        logger.info(f"  {len(csv_df)} textes chargés depuis le CSV")
+    else:
+        logger.warning(f"CSV non trouvé : {CSV_TRAINING_DATA}. Lancez generate_training_data.py d'abord.")
+
+    logger.info(f"Dataset avant augmentation : {len(df)} échantillons")
+    logger.info(f"  Score moyen : {df['score'].mean():.4f}")
+    logger.info(f"  Score min   : {df['score'].min():.4f}")
+    logger.info(f"  Score max   : {df['score'].max():.4f}")
+
+    # 3. Data augmentation — doubler le dataset avec des variantes
+    augmented_texts = []
+    augmented_scores = []
+    for _, row in df.iterrows():
+        # Version originale
+        augmented_texts.append(row["text"])
+        augmented_scores.append(row["score"])
+        # 2 variantes augmentées par texte
+        for _ in range(2):
+            aug_text = augment_text(row["text"])
+            aug_score = compute_uncertainty_score(aug_text, lexicon)
+            augmented_texts.append(aug_text)
+            augmented_scores.append(aug_score)
+
+    df_augmented = pd.DataFrame({"text": augmented_texts, "score": augmented_scores})
+    logger.info(f"Dataset après augmentation (x3) : {len(df_augmented)} échantillons")
+    logger.info(f"  Score moyen : {df_augmented['score'].mean():.4f}")
+    logger.info(f"  Score min   : {df_augmented['score'].min():.4f}")
+    logger.info(f"  Score max   : {df_augmented['score'].max():.4f}")
+
+    # 4. Modèle
     model, tokenizer = build_model()
 
-    # 4. Dataset + Split
+    # 5. Dataset + Split
     dataset = UncertaintyDataset(
-        texts=df["text"].tolist(),
-        scores=df["score"].tolist(),
+        texts=df_augmented["text"].tolist(),
+        scores=df_augmented["score"].tolist(),
         tokenizer=tokenizer,
     )
 
-    train_size = int(0.8 * len(dataset))
+    train_size = int(0.85 * len(dataset))
     eval_size = len(dataset) - train_size
 
     if eval_size == 0:
@@ -413,27 +614,39 @@ def train_model(
 
     logger.info(f"Train : {len(train_dataset)} | Eval : {len(eval_dataset)}")
 
-    # 5. Training arguments
+    # 6. Training arguments — optimisé pour RTX 4080 GPU (16GB VRAM)
+    use_gpu = torch.cuda.is_available()
+    if use_gpu:
+        logger.info(f"🚀 GPU détecté : {torch.cuda.get_device_name(0)}")
+        logger.info(f"   VRAM totale : {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+    else:
+        logger.warning("⚠️ Pas de GPU détecté — entraînement sur CPU (lent)")
+
     training_args = TrainingArguments(
         output_dir=output_dir,
         num_train_epochs=epochs,
         per_device_train_batch_size=batch_size,
-        per_device_eval_batch_size=batch_size,
+        per_device_eval_batch_size=batch_size * 2,   # Eval peut être plus gros
         learning_rate=learning_rate,
         weight_decay=0.01,
+        warmup_ratio=0.06,
+        lr_scheduler_type="cosine",
+        gradient_accumulation_steps=1,               # Batch direct = batch_size
         eval_strategy="epoch",
         save_strategy="epoch",
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
         greater_is_better=False,
-        logging_steps=10,
+        logging_steps=10,                             # Log plus fréquent
         save_total_limit=2,
-        fp16=torch.cuda.is_available(),
-        report_to="none",           # Pas de wandb/tensorboard
+        fp16=use_gpu,
+        dataloader_num_workers=0,
+        report_to="none",
         seed=42,
+        disable_tqdm=False,                           # Barre de progression visible
     )
 
-    # 6. Trainer
+    # 7. Trainer
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -441,15 +654,21 @@ def train_model(
         eval_dataset=eval_dataset,
     )
 
-    logger.info("Début de l'entraînement...")
+    logger.info(f"Début de l'entraînement — {epochs} époques, batch={batch_size}, GPU={use_gpu}")
     trainer.train()
 
-    # 7. Sauvegarde — on merge les adaptateurs LoRA dans le modèle de base
-    #    pour avoir un modèle standalone facile à charger en inférence
+    # 8. Sauvegarde — on merge les adaptateurs LoRA dans le modèle de base
     logger.info(f"Fusion des adaptateurs LoRA et sauvegarde dans {output_dir}/")
-    merged_model = model.merge_and_unload()
-    merged_model.save_pretrained(output_dir)
-    tokenizer.save_pretrained(output_dir)
+    try:
+        merged_model = model.merge_and_unload()
+        merged_model.save_pretrained(output_dir)
+        tokenizer.save_pretrained(output_dir)
+        logger.info("✅ Modèle fusionné et sauvegardé !")
+    except Exception as e:
+        logger.warning(f"Merge LoRA a échoué ({e}), sauvegarde du modèle PEFT directement...")
+        model.save_pretrained(output_dir)
+        tokenizer.save_pretrained(output_dir)
+        logger.info("✅ Modèle PEFT sauvegardé (sans merge) !")
 
     logger.info("Entraînement terminé !")
     return model, tokenizer
@@ -510,8 +729,9 @@ class UncertaintyAgent:
         with torch.no_grad():
             output = self.model(input_ids=input_ids, attention_mask=attention_mask)
             logit = output.logits.squeeze(-1)
-            # Sigmoid pour contraindre la sortie dans [0, 1]
-            score = torch.sigmoid(logit).item()
+            # Clamp direct : le modèle est entraîné en régression MSE,
+            # les logits sont déjà calibrés dans [0, 1]
+            score = logit.clamp(0.0, 1.0).item()
 
         return round(score, 4)
 
@@ -545,7 +765,9 @@ class UncertaintyAgent:
             with torch.no_grad():
                 output = self.model(input_ids=input_ids, attention_mask=attention_mask)
                 logits = output.logits.squeeze(-1)
-                batch_scores = torch.sigmoid(logits).tolist()
+                # Clamp direct : le modèle est entraîné en régression MSE,
+                # les logits sont déjà calibrés dans [0, 1]
+                batch_scores = logits.clamp(0.0, 1.0).tolist()
 
                 if isinstance(batch_scores, float):
                     batch_scores = [batch_scores]
@@ -582,19 +804,19 @@ def main():
     parser.add_argument(
         "--epochs",
         type=int,
-        default=5,
+        default=50,
         help="Nombre d'époques d'entraînement",
     )
     parser.add_argument(
         "--batch_size",
         type=int,
-        default=8,
+        default=16,
         help="Taille des batches",
     )
     parser.add_argument(
         "--lr",
         type=float,
-        default=2e-4,
+        default=3e-5,
         help="Learning rate",
     )
     parser.add_argument(
