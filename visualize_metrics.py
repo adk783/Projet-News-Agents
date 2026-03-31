@@ -50,14 +50,50 @@ def load_data():
     db_path = os.path.join(OUTPUT_DIR, "news_database.db")
     conn = sqlite3.connect(db_path)
     
-    query = """
-        SELECT a.title, a.ticker, s.polarity, s.polarity_conf, s.uncertainty
-        FROM article_scores s
-        JOIN articles a ON s.url = a.url
-    """
-    cursor = conn.cursor()
-    cursor.execute(query)
-    rows = cursor.fetchall()
+    try:
+        query = """
+            SELECT a.title, a.ticker, s.polarity, s.polarity_conf, s.uncertainty,
+                   hr.human_status, hr.human_score
+            FROM article_scores s
+            JOIN articles a ON s.url = a.url
+            LEFT JOIN human_reviews hr ON s.url = hr.url
+        """
+        cursor = conn.cursor()
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        
+        model_unc = []
+        human_unc = []
+        is_human = []
+        
+        for r in rows:
+            m_u = r[4]
+            h_stat = r[5]
+            h_score = r[6]
+            
+            model_unc.append(m_u)
+            
+            if h_stat in ['approved', 'modified'] and h_score is not None:
+                human_unc.append(h_score)
+                is_human.append(True)
+            else:
+                human_unc.append(m_u)
+                is_human.append(False)
+    except sqlite3.OperationalError:
+        # Table human_reviews n'existe pas encore
+        query = """
+            SELECT a.title, a.ticker, s.polarity, s.polarity_conf, s.uncertainty
+            FROM article_scores s
+            JOIN articles a ON s.url = a.url
+        """
+        cursor = conn.cursor()
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        
+        model_unc = [r[4] for r in rows]
+        human_unc = model_unc.copy()
+        is_human = [False] * len(rows)
+
     conn.close()
     
     data = {
@@ -65,7 +101,9 @@ def load_data():
         'tickers': [r[1] for r in rows],
         'polarity': [r[2] for r in rows],
         'confidence': [r[3] for r in rows],
-        'uncertainty': [r[4] for r in rows],
+        'uncertainty': model_unc,
+        'human_uncertainty': human_unc,
+        'has_human_edits': any(is_human)
     }
     return data
 
@@ -153,10 +191,11 @@ def plot_uncertainty_distribution(data):
     fig.suptitle('📈  Distribution des Scores d\'Incertitude', fontsize=16, fontweight='bold', y=0.97)
 
     scores = data['uncertainty']
+    human_scores = data['human_uncertainty']
     
     # Histogramme
-    bins = np.linspace(0, max(scores) + 0.05, 20)
-    n, bins_out, patches = ax.hist(scores, bins=bins, edgecolor='white', linewidth=1.2, alpha=0.85)
+    bins = np.linspace(0, max(max(scores), max(human_scores)) + 0.05, 20)
+    n, bins_out, patches = ax.hist(scores, bins=bins, edgecolor='white', linewidth=1.2, alpha=0.85, label='Prédiction Modèle')
     
     # Colorer les barres selon le niveau
     for patch, left_edge in zip(patches, bins_out[:-1]):
@@ -168,6 +207,10 @@ def plot_uncertainty_distribution(data):
             patch.set_facecolor(C_ORANGE)  # Orange = modéré
         else:
             patch.set_facecolor(C_NEG)     # Rouge = incertain
+
+    # Histogramme Humain superposé
+    if data.get('has_human_edits', False):
+        ax.hist(human_scores, bins=bins, histtype='step', edgecolor='#ffca28', linewidth=3, hatch='///', label='Corrections Humaines (HITL)')
 
     # Lignes de référence
     mean_s = np.mean(scores)
@@ -183,8 +226,9 @@ def plot_uncertainty_distribution(data):
         mpatches.Patch(color=C_NEG, label='🔴 Incertain (> 0.30)'),
     ]
     
-    ax.legend(handles=legend_patches + ax.get_legend_handles_labels()[0],
-             loc='upper right', fontsize=9, framealpha=0.9)
+    # On garde les labels de l'axe déjà générés (hist modèle/humain et lignes)
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles=legend_patches + handles, loc='upper right', fontsize=9, framealpha=0.9)
     
     ax.set_xlabel('Score d\'incertitude', fontsize=12)
     ax.set_ylabel('Nombre d\'articles', fontsize=12)
@@ -192,19 +236,21 @@ def plot_uncertainty_distribution(data):
     ax.spines['right'].set_visible(False)
 
     # Stats en annotation
+    h_mean = np.mean(human_scores) if data.get('has_human_edits', False) else mean_s
     stats_text = (f"n = {len(scores)} articles\n"
                   f"min = {min(scores):.4f}\n"
                   f"max = {max(scores):.4f}\n"
-                  f"écart-type = {np.std(scores):.4f}")
+                  f"m̅ (modèle) = {mean_s:.4f}\n"
+                  f"m̅ (humain) = {h_mean:.4f}")
     ax.text(0.98, 0.65, stats_text, transform=ax.transAxes, fontsize=9,
             va='top', ha='right', fontfamily='monospace',
             bbox=dict(boxstyle='round', facecolor='white', edgecolor='#bdc3c7', alpha=0.9))
 
     fig.tight_layout(rect=[0, 0.14, 1, 0.93])
     add_explanation(fig,
-        "💡 Ce graphique montre la distribution des scores d'incertitude prédits par notre modèle fine-tuné.\n"
-        "Un score proche de 0 = article factuel et sûr. Un score élevé = article spéculatif, plein de doutes.\n"
-        "La plupart des articles ont un score bas → les news financières sont majoritairement factuelles."
+        "💡 Ce graphique montre la distribution des scores d'incertitude prédits.\n"
+        "Si des corrections existent, les barres hachurées jaunes montrent le décalage introduit par l'humain.\n"
+        "Un score proche de 0 = article factuel et sûr. Un score élevé = article spéculatif, plein de doutes."
     )
 
     path = os.path.join(PLOTS_DIR, "2_uncertainty_distribution.png")
@@ -225,12 +271,29 @@ def plot_scatter_uncertainty_vs_confidence(data):
     colors_map = {-1: C_NEG, 0: C_NEU, 1: C_POS}
     labels_map = {-1: 'Négatif', 0: 'Neutre', 1: 'Positif'}
 
+    has_edits = data.get('has_human_edits', False)
+
     for pol_val in [-1, 0, 1]:
         mask = [i for i, p in enumerate(data['polarity']) if p == pol_val]
         x = [data['confidence'][i] for i in mask]
-        y = [data['uncertainty'][i] for i in mask]
-        ax.scatter(x, y, c=colors_map[pol_val], label=labels_map[pol_val],
-                  s=80, alpha=0.7, edgecolors='white', linewidth=0.8, zorder=5)
+        y_mod = [data['uncertainty'][i] for i in mask]
+        y_hum = [data['human_uncertainty'][i] for i in mask]
+        
+        # Point initial (modèle) — semi-transparent s'il y a des corrections
+        alpha_val = 0.3 if has_edits else 0.7
+        ax.scatter(x, y_mod, c=colors_map[pol_val], label=labels_map[pol_val],
+                  s=80, alpha=alpha_val, edgecolors='white', linewidth=0.8, zorder=5)
+        
+        if has_edits:
+            # Point corrigé (humain)
+            ax.scatter(x, y_hum, c=colors_map[pol_val],
+                      s=80, alpha=1.0, edgecolors='white', linewidth=1.5, zorder=6)
+            
+            # Flèches de correction
+            for xi, ymi, yhi in zip(x, y_mod, y_hum):
+                if ymi != yhi:
+                    ax.annotate('', xy=(xi, yhi), xytext=(xi, ymi),
+                                arrowprops=dict(arrowstyle="->", color=colors_map[pol_val], alpha=0.5))
 
     # Zones annotées
     ax.axhspan(0.25, max(data['uncertainty']) + 0.05, alpha=0.05, color=C_NEG)

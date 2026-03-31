@@ -33,10 +33,20 @@ def get_articles():
     """Charge tous les articles avec leurs scores."""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS human_reviews (
+            url TEXT PRIMARY KEY,
+            human_status TEXT,
+            human_score REAL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
     c.execute("""
-        SELECT a.url, a.title, a.ticker, a.content, s.polarity, s.polarity_conf, s.uncertainty
+        SELECT a.url, a.title, a.ticker, a.content, s.polarity, s.polarity_conf, s.uncertainty,
+               hr.human_status, hr.human_score
         FROM article_scores s
         JOIN articles a ON s.url = a.url
+        LEFT JOIN human_reviews hr ON s.url = hr.url
         ORDER BY s.uncertainty DESC
     """)
     rows = c.fetchall()
@@ -51,8 +61,8 @@ def get_articles():
             "polarity": r[4],
             "polarity_conf": r[5],
             "uncertainty": r[6],
-            "human_score": None,
-            "human_status": "pending",  # pending, approved, modified, rejected
+            "human_status": r[7] if r[7] else "pending",
+            "human_score": r[8] if r[7] else None,
         })
     return articles
 
@@ -90,24 +100,24 @@ HTML_PAGE = """<!DOCTYPE html>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0f0f1a;
-            --bg-secondary: #1a1a2e;
-            --bg-card: #16213e;
-            --bg-hover: #1f2b4d;
-            --accent: #6c63ff;
-            --accent-light: #8b83ff;
-            --green: #00d4aa;
-            --green-dim: rgba(0,212,170,0.15);
-            --red: #ff6b6b;
-            --red-dim: rgba(255,107,107,0.15);
-            --orange: #ffa726;
-            --orange-dim: rgba(255,167,38,0.15);
-            --blue: #42a5f5;
-            --text-primary: #e8e8f0;
-            --text-secondary: #9090a8;
-            --text-dim: #606080;
-            --border: rgba(108,99,255,0.2);
-            --glow: rgba(108,99,255,0.3);
+            --bg-primary: #f0f0f0;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-hover: #e0e0e0;
+            --accent: #222222;
+            --accent-light: #555555;
+            --green: #10b981;
+            --green-dim: rgba(16, 185, 129, 0.1);
+            --red: #ef4444;
+            --red-dim: rgba(239, 68, 68, 0.1);
+            --orange: #f59e0b;
+            --orange-dim: rgba(245, 158, 11, 0.1);
+            --blue: #3b82f6;
+            --text-primary: #000000;
+            --text-secondary: #333333;
+            --text-dim: #555555;
+            --border: rgba(0,0,0,0.15);
+            --glow: rgba(0,0,0,0);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -580,7 +590,7 @@ HTML_PAGE = """<!DOCTYPE html>
 <body>
 
 <div class="header">
-    <h1>🔍 Human-in-the-Loop Review</h1>
+    <h1>Human-in-the-Loop Review</h1>
     <div class="header-stats">
         <div class="stat-chip green">
             Approuvés: <span class="val" id="hdr-approved">0</span>
@@ -610,7 +620,7 @@ HTML_PAGE = """<!DOCTYPE html>
             </div>
             <div class="nav-btns">
                 <button class="nav-btn" onclick="navigate(-1)">← Précédent</button>
-                <button class="nav-btn" onclick="navigateRandom()">🎲 Aléatoire</button>
+                <button class="nav-btn" onclick="navigateRandom()">Aléatoire</button>
                 <button class="nav-btn" onclick="navigate(1)">Suivant →</button>
             </div>
         </div>
@@ -636,18 +646,21 @@ HTML_PAGE = """<!DOCTYPE html>
 
             <div class="actions">
                 <button class="action-btn approve" onclick="setAction('approved')">
-                    ✅ Approuver
+                    Le modele a raison
                 </button>
                 <button class="action-btn modify" onclick="setAction('modified')">
-                    ✏️ Modifier
+                    Je veux corriger
                 </button>
                 <button class="action-btn reject" onclick="setAction('rejected')">
-                    ❌ Rejeter
+                    Rejeter l'article
                 </button>
             </div>
 
             <div class="slider-section" id="slider-section">
                 <label>Score d'incertitude corrigé :</label>
+                <p style="font-size:11px; margin-bottom:12px; font-style:italic; color:#555;">
+                   (Sauvegarde auto. Cliquez juste sur Suivant au lieu de valider apres.)
+                </p>
                 <div class="slider-row">
                     <span style="font-size:12px; color:var(--green)">Factuel</span>
                     <input type="range" min="0" max="100" value="50" id="score-slider"
@@ -661,7 +674,7 @@ HTML_PAGE = """<!DOCTYPE html>
 
     <!-- Side Panel -->
     <div class="side-panel">
-        <div class="side-title">📊 Dashboard</div>
+        <div class="side-title">Dashboard</div>
 
         <div class="stat-card">
             <div class="stat-label">Distribution des scores</div>
@@ -688,11 +701,11 @@ HTML_PAGE = """<!DOCTYPE html>
             </div>
         </div>
 
-        <div class="side-title">📰 Liste des articles</div>
+        <div class="side-title">Liste des articles</div>
         <div class="article-list" id="article-list"></div>
 
         <button class="export-btn" onclick="exportCSV()">
-            📥 Exporter les résultats (CSV)
+            Exporter les résultats (CSV)
         </button>
     </div>
 </div>
@@ -741,13 +754,13 @@ function renderArticle() {
     // Status badge
     const badge = document.getElementById('status-badge');
     if (a.human_status === 'approved') {
-        badge.innerHTML = '<span style="color:var(--green)">✅ Approuvé</span>';
+        badge.innerHTML = '<span style="color:var(--green)">Approuvé</span>';
     } else if (a.human_status === 'modified') {
-        badge.innerHTML = '<span style="color:var(--orange)">✏️ Modifié → ' + a.human_score.toFixed(2) + '</span>';
+        badge.innerHTML = '<span style="color:var(--orange)">Modifié → ' + a.human_score.toFixed(2) + '</span>';
     } else if (a.human_status === 'rejected') {
-        badge.innerHTML = '<span style="color:var(--red)">❌ Rejeté</span>';
+        badge.innerHTML = '<span style="color:var(--red)">Rejeté</span>';
     } else {
-        badge.innerHTML = '<span style="color:var(--text-dim)">⏳ En attente</span>';
+        badge.innerHTML = '<span style="color:var(--text-dim)">En attente</span>';
     }
 
     // Action button highlights
@@ -880,7 +893,7 @@ function updateStats() {
         }
     });
     const maxCount = Math.max(...counts, 1);
-    const colors = ['#00d4aa', '#00d4aa', '#42a5f5', '#42a5f5', '#ffa726', '#ffa726', '#ff6b6b', '#ff6b6b', '#ff4444', '#ff4444'];
+    const colors = ['#333', '#444', '#555', '#666', '#777', '#888', '#999', '#aaa', '#bbb', '#ccc'];
 
     const chartDiv = document.getElementById('dist-chart');
     chartDiv.innerHTML = counts.map((c, i) =>
@@ -1010,8 +1023,21 @@ class ReviewHandler(BaseHTTPRequestHandler):
 
             # Update cache
             if ReviewHandler.articles_cache and idx < len(ReviewHandler.articles_cache):
-                ReviewHandler.articles_cache[idx]['human_status'] = data['status']
-                ReviewHandler.articles_cache[idx]['human_score'] = data.get('human_score')
+                article = ReviewHandler.articles_cache[idx]
+                article['human_status'] = data['status']
+                article['human_score'] = data.get('human_score')
+                try:
+                    import sqlite3
+                    conn = sqlite3.connect(DB_PATH)
+                    c = conn.cursor()
+                    c.execute('''
+                        INSERT OR REPLACE INTO human_reviews (url, human_status, human_score, timestamp)
+                        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                    ''', (article['url'], data['status'], data.get('human_score')))
+                    conn.commit()
+                    conn.close()
+                except Exception as e:
+                    pass
 
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
@@ -1026,7 +1052,7 @@ def main():
     server = HTTPServer(('127.0.0.1', PORT), ReviewHandler)
     print(f"")
     print(f"  ╔══════════════════════════════════════════════╗")
-    print(f"  ║  🔍 Human-in-the-Loop Review Interface       ║")
+    print(f"  ║   Human-in-the-Loop Review Interface       ║")
     print(f"  ║                                              ║")
     print(f"  ║  → http://localhost:{PORT}                    ║")
     print(f"  ║                                              ║")

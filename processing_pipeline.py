@@ -67,6 +67,7 @@ def run_processing_pipeline():
         print("\n------------------------------")
         print(f"Article traité : {title}")
         print(f"  label = {label}, polarity = {polarity}, confidence = {conf_pol:.3f}")
+        print(f"  uncertainty = {uncertainty:.4f}")
 
     conn.commit()
     conn.close()
