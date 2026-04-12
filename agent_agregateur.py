@@ -23,7 +23,7 @@ WINDOW_HOURS = 48   # Fenêtre glissante en heures
 # ─── NIVEAU DE CONFIANCE ───────────────────────────────────────────────────────
 def get_confidence(nb_articles):
     """
-    Retourne le niveau de confiance selon le nombre d'articles analysés.
+    Retourne le niveau de confiance selon le nombre d'articles non-neutral analysés.
     """
     if nb_articles == 0:
         return "insufficient"
@@ -38,11 +38,11 @@ def get_confidence(nb_articles):
 # ─── SENTIMENT GLOBAL ──────────────────────────────────────────────────────────
 def get_sentiment_global(score_global):
     """
-    Convertit un score numérique en label sentiment global.
+    Convertit un score signé (-1 → +1) en label sentiment global.
     """
-    if score_global >= 0.60:
+    if score_global >= 0.20:
         return "bullish"
-    elif score_global <= 0.40:
+    elif score_global <= -0.20:
         return "bearish"
     else:
         return "neutral"
@@ -52,12 +52,14 @@ def get_sentiment_global(score_global):
 def calculer_score_ticker(cursor, conn, ticker):
     """
     Calcule le score global d'un ticker sur la fenêtre des WINDOW_HOURS dernières heures.
+    Score sur échelle signée -1 → +1 (bearish négatif, bullish positif).
+    Moyenne pondérée par |score| (option A) — les neutrals sont exclus du calcul.
     Insère une nouvelle ligne dans ticker_scores.
     C'est cette fonction que l'orchestrateur appelle.
     """
 
-    now         = datetime.now(timezone.utc)
-    window_end  = now
+    now          = datetime.now(timezone.utc)
+    window_end   = now
     window_start = now - timedelta(hours=WINDOW_HOURS)
 
     window_start_str = window_start.isoformat()
@@ -75,39 +77,47 @@ def calculer_score_ticker(cursor, conn, ticker):
     ''', (ticker, window_start_str, window_end_str))
 
     resultats = cursor.fetchall()
-    nb_articles = len(resultats)
 
-    logger.info(f"[{ticker}] {nb_articles} article(s) trouvé(s) dans la fenêtre de {WINDOW_HOURS}h")
+    # Séparation neutrals / articles actifs
+    articles_actifs = [(score, sentiment) for score, sentiment in resultats if sentiment != "neutral"]
+    nb_neutral      = len(resultats) - len(articles_actifs)
+    nb_articles     = len(articles_actifs)
+
+    logger.info(f"[{ticker}] {nb_articles} article(s) actif(s) + {nb_neutral} neutral(s) dans la fenêtre de {WINDOW_HOURS}h")
 
     # Cas : pas assez de données
     if nb_articles == 0:
         cursor.execute('''
             INSERT INTO ticker_scores
-            (ticker, score_global, sentiment_global, nb_articles, confidence, window_start, window_end, calculated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (ticker, score_global, sentiment_global, nb_articles, nb_neutral, confidence, window_start, window_end, calculated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             ticker,
             None,
             None,
             0,
+            nb_neutral,
             "insufficient",
             window_start_str,
             window_end_str,
             now.isoformat()
         ))
         conn.commit()
-        logger.info(f"[{ticker}] Pas de données → insufficient")
+        logger.info(f"[{ticker}] Pas de données actives → insufficient ({nb_neutral} neutral(s) ignoré(s))")
         return
 
-    # Calcul de la moyenne des scores
-    # APRÈS (correct)
-    scores_diriges = []
-    for score, sentiment in resultats:
-        if sentiment == "bearish":
-            scores_diriges.append(1 - score)
-        else:
-            scores_diriges.append(score)
-    score_global = round(sum(scores_diriges) / len(scores_diriges), 4)
+    # Conversion en scores signés + pondération par |score|
+    scores_signes = []
+    poids         = []
+    for score, sentiment in articles_actifs:
+        score_signe = -score if sentiment == "bearish" else score
+        scores_signes.append(score_signe)
+        poids.append(abs(score_signe))
+
+    total_poids  = sum(poids)
+    score_global = round(
+        sum(s * p for s, p in zip(scores_signes, poids)) / total_poids, 4
+    ) if total_poids > 0 else 0.0
 
     sentiment_global = get_sentiment_global(score_global)
     confidence       = get_confidence(nb_articles)
@@ -115,13 +125,14 @@ def calculer_score_ticker(cursor, conn, ticker):
     # Insertion dans ticker_scores
     cursor.execute('''
         INSERT INTO ticker_scores
-        (ticker, score_global, sentiment_global, nb_articles, confidence, window_start, window_end, calculated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (ticker, score_global, sentiment_global, nb_articles, nb_neutral, confidence, window_start, window_end, calculated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         ticker,
         score_global,
         sentiment_global,
         nb_articles,
+        nb_neutral,
         confidence,
         window_start_str,
         window_end_str,
@@ -129,4 +140,4 @@ def calculer_score_ticker(cursor, conn, ticker):
     ))
     conn.commit()
 
-    logger.info(f"[{ticker}] Score global → {sentiment_global} ({score_global}) | {nb_articles} articles | confiance : {confidence}")
+    logger.info(f"[{ticker}] Score global → {sentiment_global} ({score_global:+.4f}) | {nb_articles} actifs + {nb_neutral} neutrals | confiance : {confidence}")

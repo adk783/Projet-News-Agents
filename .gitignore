@@ -5,3 +5,4 @@ orchestrateur.log
 # Ignorer les dossiers cachés de Python
 __pycache__/
 *.pyc  
+.claude/

@@ -8,18 +8,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
-    --bg:        #0a0c0f;
-    --surface:   #111318;
-    --border:    #1e2129;
-    --text:      #c9d1d9;
-    --muted:     #484f58;
-    --bullish:   #3fb950;
-    --bearish:   #f85149;
-    --neutral:   #8b949e;
-    --accent:    #58a6ff;
-    --high:      #3fb950;
-    --normal:    #d29922;
-    --low:       #f85149;
+    --bg:        #080808;
+    --surface:   #0f0f0f;
+    --border:    #1c1c1c;
+    --text:      #d0d0d0;
+    --muted:     #444;
+    --bullish:   #4ade80;
+    --bearish:   #f87171;
+    --neutral:   #555;
+    --accent:    #fff;
     --font-mono: 'IBM Plex Mono', monospace;
     --font-sans: 'IBM Plex Sans', sans-serif;
   }
@@ -32,50 +29,34 @@
     overflow-x: hidden;
   }
 
-  /* ── GRID NOISE BACKGROUND ── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image:
-      linear-gradient(rgba(88,166,255,.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(88,166,255,.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
   /* ── HEADER ── */
   header {
-    position: relative; z-index: 1;
     border-bottom: 1px solid var(--border);
     padding: 0 2rem;
     display: flex; align-items: center; justify-content: space-between;
-    height: 60px;
-    background: rgba(17,19,24,.9);
-    backdrop-filter: blur(8px);
+    height: 52px;
   }
   .logo {
     font-family: var(--font-mono);
-    font-size: .85rem;
+    font-size: .78rem;
     font-weight: 600;
-    letter-spacing: .1em;
-    color: var(--accent);
+    letter-spacing: .12em;
+    color: var(--text);
   }
   .logo span { color: var(--muted); }
   #live-clock {
     font-family: var(--font-mono);
-    font-size: .75rem;
+    font-size: .72rem;
     color: var(--muted);
   }
 
   /* ── LAYOUT ── */
   main {
-    position: relative; z-index: 1;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1.5rem 2rem;
     display: grid;
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 300px 1fr;
     gap: 1.5rem;
   }
   @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
@@ -84,340 +65,293 @@
   .panel {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 6px;
     overflow: hidden;
   }
   .panel-header {
-    padding: .75rem 1.25rem;
+    padding: .65rem 1.25rem;
     border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: .6rem;
     font-family: var(--font-mono);
-    font-size: .7rem;
+    font-size: .65rem;
     font-weight: 600;
-    letter-spacing: .08em;
+    letter-spacing: .1em;
     color: var(--muted);
     text-transform: uppercase;
   }
-  .panel-header .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 6px var(--accent);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
   .panel-body { padding: 1.25rem; }
 
-  /* ── CONTROL PANEL ── */
-  .sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+  /* ── SIDEBAR ── */
+  .sidebar { display: flex; flex-direction: column; gap: 1rem; }
 
-  .stats-row {
-    display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
-  }
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
   .stat-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
     padding: .75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
   }
   .stat-val {
     font-family: var(--font-mono);
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     font-weight: 600;
-    color: var(--accent);
+    color: var(--text);
   }
   .stat-label {
-    font-size: .7rem;
+    font-size: .65rem;
     color: var(--muted);
-    margin-top: .2rem;
+    margin-top: .15rem;
     text-transform: uppercase;
-    letter-spacing: .06em;
+    letter-spacing: .07em;
   }
 
   label {
     display: block;
-    font-size: .72rem;
-    font-weight: 500;
+    font-size: .68rem;
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: .07em;
-    margin-bottom: .5rem;
+    letter-spacing: .08em;
+    margin-bottom: .45rem;
   }
   .ticker-input {
     width: 100%;
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: .6rem .9rem;
+    border-radius: 4px;
+    padding: .55rem .8rem;
     font-family: var(--font-mono);
-    font-size: .82rem;
+    font-size: .8rem;
     color: var(--text);
     outline: none;
-    transition: border-color .2s;
+    transition: border-color .15s;
   }
-  .ticker-input:focus { border-color: var(--accent); }
+  .ticker-input:focus { border-color: #333; }
 
   .toggle-row {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: .75rem;
   }
-  .toggle-label { font-size: .78rem; color: var(--text); }
-  .toggle {
-    position: relative; width: 36px; height: 20px;
-  }
+  .toggle-label { font-size: .75rem; color: var(--muted); }
+  .toggle { position: relative; width: 34px; height: 18px; }
   .toggle input { opacity: 0; width: 0; height: 0; }
   .slider {
     position: absolute; inset: 0;
     background: var(--border);
-    border-radius: 20px;
+    border-radius: 18px;
     cursor: pointer;
     transition: .2s;
   }
   .slider::before {
     content: '';
     position: absolute;
-    width: 14px; height: 14px;
+    width: 12px; height: 12px;
     left: 3px; bottom: 3px;
     background: var(--muted);
     border-radius: 50%;
     transition: .2s;
   }
-  input:checked + .slider { background: var(--accent); }
-  input:checked + .slider::before { transform: translateX(16px); background: white; }
+  input:checked + .slider { background: #2a2a2a; border: 1px solid #444; }
+  input:checked + .slider::before { transform: translateX(16px); background: var(--text); }
 
   .loop-input {
     width: 100%;
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: .5rem .8rem;
+    border-radius: 4px;
+    padding: .45rem .75rem;
     font-family: var(--font-mono);
-    font-size: .8rem;
+    font-size: .78rem;
     color: var(--text);
     outline: none;
-    margin-top: .5rem;
+    margin-top: .45rem;
     display: none;
   }
   .loop-input.visible { display: block; }
 
   .btn {
     width: 100%;
-    padding: .65rem 1rem;
-    border-radius: 6px;
-    border: none;
+    padding: .6rem 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--border);
     font-family: var(--font-mono);
-    font-size: .78rem;
+    font-size: .72rem;
     font-weight: 600;
-    letter-spacing: .06em;
+    letter-spacing: .07em;
     cursor: pointer;
-    transition: all .2s;
+    transition: all .15s;
     text-transform: uppercase;
-  }
-  .btn-primary {
-    background: var(--accent);
-    color: #0a0c0f;
-  }
-  .btn-primary:hover { background: #79c0ff; transform: translateY(-1px); }
-  .btn-secondary {
     background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    margin-top: .5rem;
+    color: var(--muted);
   }
-  .btn-secondary:hover { background: rgba(88,166,255,.08); }
-  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  .btn-primary { border-color: #2a2a2a; color: var(--text); }
+  .btn-primary:hover { border-color: #3a3a3a; color: #fff; background: #111; }
+  .btn-secondary { margin-top: .4rem; }
+  .btn-secondary:hover { border-color: #2a2a2a; color: var(--text); background: #111; }
+  .btn:disabled { opacity: .3; cursor: not-allowed; }
 
   #run-status {
     font-family: var(--font-mono);
-    font-size: .7rem;
-    color: var(--bullish);
+    font-size: .68rem;
+    color: var(--muted);
     min-height: 1.2rem;
     margin-top: .5rem;
-    text-align: center;
   }
 
-  /* ── RIGHT PANEL ── */
-  .right { display: flex; flex-direction: column; gap: 1.5rem; }
+  /* ── RIGHT ── */
+  .right { display: flex; flex-direction: column; gap: 1rem; }
 
   /* ── TICKER CARDS ── */
   .ticker-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: .75rem;
     padding: 1.25rem;
   }
   .ticker-card {
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.25rem;
+    border-radius: 5px;
+    padding: 1rem;
     cursor: pointer;
-    transition: all .2s;
-    position: relative;
-    overflow: hidden;
+    transition: border-color .15s;
   }
-  .ticker-card::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0;
-    height: 3px;
-    border-radius: 8px 8px 0 0;
-    transition: .2s;
-  }
-  .ticker-card.bullish::before { background: var(--bullish); }
-  .ticker-card.bearish::before { background: var(--bearish); }
-  .ticker-card.neutral::before { background: var(--neutral); }
-  .ticker-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .ticker-card.active { border-color: var(--accent); }
+  .ticker-card:hover { border-color: #2a2a2a; }
+  .ticker-card.active { border-color: #333; }
 
   .tc-symbol {
     font-family: var(--font-mono);
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--text);
-    margin-bottom: .3rem;
+    margin-bottom: .25rem;
   }
   .tc-sentiment {
-    font-size: .75rem;
+    font-size: .68rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: .1em;
-    margin-bottom: .6rem;
+    margin-bottom: .55rem;
   }
   .tc-sentiment.bullish { color: var(--bullish); }
   .tc-sentiment.bearish { color: var(--bearish); }
-  .tc-sentiment.neutral { color: var(--neutral); }
+  .tc-sentiment.neutral { color: var(--muted); }
   .tc-sentiment.insufficient { color: var(--muted); }
 
   .tc-score-bar {
-    height: 4px;
+    height: 2px;
     background: var(--border);
     border-radius: 2px;
     margin-bottom: .5rem;
     overflow: hidden;
   }
-  .tc-score-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width .6s ease;
-  }
+  .tc-score-fill { height: 100%; border-radius: 2px; transition: width .5s ease; }
   .bullish .tc-score-fill { background: var(--bullish); }
   .bearish .tc-score-fill { background: var(--bearish); }
-  .neutral .tc-score-fill { background: var(--neutral); }
+  .neutral .tc-score-fill { background: var(--muted); }
 
   .tc-meta {
     display: flex; justify-content: space-between;
-    font-size: .68rem;
+    font-size: .65rem;
     color: var(--muted);
     font-family: var(--font-mono);
   }
   .tc-confidence {
-    font-size: .63rem;
-    padding: .15rem .4rem;
-    border-radius: 3px;
+    font-size: .6rem;
+    padding: .1rem .35rem;
+    border-radius: 2px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: .06em;
+    letter-spacing: .05em;
+    border: 1px solid var(--border);
+    color: var(--muted);
   }
-  .conf-high   { background: rgba(63,185,80,.12);  color: var(--high); }
-  .conf-normal { background: rgba(210,153,34,.12); color: var(--normal); }
-  .conf-low    { background: rgba(248,81,73,.12);  color: var(--low); }
-  .conf-insufficient { background: rgba(139,148,158,.1); color: var(--muted); }
 
   /* ── CHARTS ── */
-  .charts-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   @media (max-width: 700px) { .charts-row { grid-template-columns: 1fr; } }
-  .chart-wrap { padding: 1rem; height: 220px; position: relative; }
+  .chart-wrap { padding: 1rem; height: 210px; position: relative; }
 
   /* ── ARTICLE TABLE ── */
   .article-filter {
-    display: flex; gap: .5rem;
-    padding: 0 1.25rem 1rem;
+    display: flex; gap: .4rem;
+    padding: 0 1.25rem .9rem;
     flex-wrap: wrap;
   }
   .filter-btn {
-    padding: .3rem .8rem;
-    border-radius: 4px;
+    padding: .25rem .7rem;
+    border-radius: 3px;
     border: 1px solid var(--border);
     background: transparent;
     color: var(--muted);
     font-family: var(--font-mono);
-    font-size: .7rem;
+    font-size: .65rem;
     cursor: pointer;
-    transition: .2s;
+    transition: .15s;
     text-transform: uppercase;
     letter-spacing: .05em;
   }
-  .filter-btn.active, .filter-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: rgba(88,166,255,.06);
-  }
+  .filter-btn.active { border-color: #2a2a2a; color: var(--text); }
+  .filter-btn:hover { color: var(--text); }
 
   .article-list { padding: 0 1.25rem 1.25rem; }
   .article-item {
     display: grid;
-    grid-template-columns: 80px 1fr 70px;
+    grid-template-columns: 72px 1fr 60px;
     gap: .75rem;
     align-items: start;
-    padding: .85rem 0;
+    padding: .8rem 0;
     border-bottom: 1px solid var(--border);
-    transition: .15s;
   }
   .article-item:last-child { border-bottom: none; }
-  .article-item:hover { background: rgba(88,166,255,.03); margin: 0 -.5rem; padding-left: .5rem; padding-right: .5rem; border-radius: 4px; }
 
   .ai-badge {
     font-family: var(--font-mono);
-    font-size: .65rem;
+    font-size: .6rem;
     font-weight: 600;
-    padding: .2rem .5rem;
-    border-radius: 3px;
+    padding: .18rem .45rem;
+    border-radius: 2px;
     text-transform: uppercase;
     letter-spacing: .06em;
     text-align: center;
     white-space: nowrap;
+    border: 1px solid transparent;
   }
-  .ai-badge.bullish { background: rgba(63,185,80,.12); color: var(--bullish); }
-  .ai-badge.bearish { background: rgba(248,81,73,.12); color: var(--bearish); }
-  .ai-badge.neutral { background: rgba(139,148,158,.1); color: var(--neutral); }
+  .ai-badge.bullish { color: var(--bullish); border-color: rgba(74,222,128,.2); }
+  .ai-badge.bearish { color: var(--bearish); border-color: rgba(248,113,113,.2); }
+  .ai-badge.neutral { color: var(--muted);   border-color: var(--border); }
 
   .ai-title {
-    font-size: .8rem;
+    font-size: .78rem;
     color: var(--text);
     line-height: 1.4;
-    margin-bottom: .25rem;
+    margin-bottom: .2rem;
   }
   .ai-reasoning {
-    font-size: .7rem;
+    font-size: .68rem;
     color: var(--muted);
     line-height: 1.4;
-    font-style: italic;
   }
   .ai-score {
     font-family: var(--font-mono);
-    font-size: .75rem;
+    font-size: .72rem;
     font-weight: 600;
     text-align: right;
+    color: var(--muted);
   }
   .ai-score.bullish { color: var(--bullish); }
   .ai-score.bearish { color: var(--bearish); }
-  .ai-score.neutral { color: var(--neutral); }
 
   /* ── EMPTY STATE ── */
   .empty {
-    text-align: center;
-    padding: 3rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
     color: var(--muted);
-    font-size: .82rem;
+    font-size: .78rem;
     font-family: var(--font-mono);
   }
-  .empty .empty-icon { font-size: 2rem; margin-bottom: .75rem; opacity: .4; }
 
   /* ── SCROLLBAR ── */
-  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 </style>
@@ -483,30 +417,19 @@
 <button class="btn btn-primary" id="btn-sourcing" onclick="runPipeline('sourcing')">
   ▶ Lancer le Sourcing
 </button>
-<div id="progress-sourcing" style="display:none; margin-top:.75rem">
-  <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
-    <span style="font-size:.7rem;color:var(--muted);font-family:var(--font-mono)" id="label-sourcing">Sourcing...</span>
-    <span style="font-size:.7rem;color:var(--accent);font-family:var(--font-mono)" id="pct-sourcing">0%</span>
-  </div>
-  <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
-    <div id="bar-sourcing" style="height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .4s ease"></div>
-  </div>
-</div>
-
-<button class="btn btn-secondary" id="btn-orchestrateur" onclick="runPipeline('orchestrateur')" style="margin-top:.5rem">
+<button class="btn btn-secondary" id="btn-orchestrateur" onclick="runPipeline('orchestrateur')" style="margin-top:.4rem">
   ▶ Lancer l'Orchestrateur
 </button>
-<div id="progress-orchestrateur" style="display:none; margin-top:.75rem">
+
+<div id="progress-zone" style="display:none; margin-top:.75rem">
   <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
-    <span style="font-size:.7rem;color:var(--muted);font-family:var(--font-mono)" id="label-orchestrateur">Analyse...</span>
-    <span style="font-size:.7rem;color:var(--accent);font-family:var(--font-mono)" id="pct-orchestrateur">0%</span>
+    <span style="font-size:.68rem;color:var(--muted);font-family:var(--font-mono)" id="progress-label"></span>
+    <span style="font-size:.68rem;color:var(--text);font-family:var(--font-mono)" id="progress-pct"></span>
   </div>
-  <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
-    <div id="bar-orchestrateur" style="height:100%;background:var(--bullish);border-radius:2px;width:0%;transition:width .4s ease"></div>
+  <div style="height:2px;background:var(--border);border-radius:2px;overflow:hidden">
+    <div id="progress-bar" style="height:100%;background:var(--text);border-radius:2px;width:0%;transition:width .4s ease"></div>
   </div>
 </div>
-
-<div id="run-status"></div>
       </div>
     </div>
 
@@ -519,7 +442,7 @@
     <div class="panel">
       <div class="panel-header"><span class="dot"></span>Scores par ticker</div>
       <div class="ticker-cards" id="ticker-cards">
-        <div class="empty"><div class="empty-icon">📊</div>Aucune donnée</div>
+        <div class="empty"></div>
       </div>
     </div>
 
@@ -544,7 +467,7 @@
       <div class="panel-header"><span class="dot"></span>Articles analysés</div>
       <div class="article-filter" id="article-filters"></div>
       <div class="article-list" id="article-list">
-        <div class="empty"><div class="empty-icon">📰</div>Aucun article</div>
+        <div class="empty"></div>
       </div>
     </div>
 
@@ -564,6 +487,7 @@ updateClock();
 let selectedTicker = null;
 let pieChart = null;
 let histChart = null;
+let dbEmpty = false;
 
 // ── LOOP TOGGLE ────────────────────────────────────────────────────────────────
 document.getElementById('loop-toggle').addEventListener('change', function() {
@@ -577,6 +501,15 @@ async function loadStats() {
   document.getElementById('s-analysed').textContent = d.analysed;
   document.getElementById('s-pending').textContent  = d.pending;
   document.getElementById('s-scores').textContent   = d.scores;
+
+  // Si la base est vide, on cache les barres de progression
+  dbEmpty = d.total_articles === 0;
+  if (dbEmpty) {
+    document.getElementById('progress-sourcing').style.display      = 'none';
+    document.getElementById('progress-orchestrateur').style.display = 'none';
+    document.getElementById('run-status').textContent = '';
+    selectedTicker = null;
+  }
 }
 
 // ── TICKER CARDS ───────────────────────────────────────────────────────────────
@@ -585,17 +518,23 @@ async function loadTickerCards() {
   const container = document.getElementById('ticker-cards');
 
   if (!scores.length) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>Aucune donnée</div>';
+    container.style.display = 'flex';
+    container.innerHTML = '';
     return;
   }
 
   container.innerHTML = scores.map(s => {
     const sent      = s.sentiment_global || 'insufficient';
     const score     = s.score_global != null ? s.score_global : 0;
-    const scoreDisp = s.score_global != null ? score.toFixed(2) : '–';
-    const barWidth  = s.score_global != null ? (score * 100).toFixed(0) : 0;
+    const scoreDisp = s.score_global != null ? (score >= 0 ? '+' : '') + score.toFixed(2) : '–';
+    // Score signé -1→+1 : on mappe vers 0→100% pour la barre (centre = 50%)
+    const barWidth  = s.score_global != null ? ((score + 1) / 2 * 100).toFixed(0) : 50;
     const conf      = s.confidence || 'insufficient';
     const nb        = s.nb_articles || 0;
+    const nbNeutral = s.nb_neutral || 0;
+    const neutralInfo = nbNeutral > 0
+      ? `<div style="margin-top:.25rem;opacity:.55;font-size:.6rem;font-family:var(--font-mono)">+ ${nbNeutral} neutral${nbNeutral>1?'s':''} non comptabilisé${nbNeutral>1?'s':''}</div>`
+      : '';
     return `
       <div class="ticker-card ${sent}" onclick="selectTicker('${s.ticker}')" id="card-${s.ticker}">
         <div class="tc-symbol">${s.ticker}</div>
@@ -608,6 +547,7 @@ async function loadTickerCards() {
         <div class="tc-meta" style="margin-top:.4rem">
           <span>${nb} article${nb>1?'s':''}</span>
         </div>
+        ${neutralInfo}
       </div>
     `;
   }).join('');
@@ -713,7 +653,7 @@ async function loadArticles(ticker) {
   const list = document.getElementById('article-list');
 
   if (!filtered.length) {
-    list.innerHTML = '<div class="empty"><div class="empty-icon">📰</div>Aucun article</div>';
+    list.innerHTML = '';
     return;
   }
 
@@ -726,7 +666,7 @@ async function loadArticles(ticker) {
         <div class="ai-title">${a.title}</div>
         <div class="ai-reasoning">${a.reasoning}</div>
       </div>
-      <div class="ai-score ${a.sentiment}">${a.score.toFixed(2)}</div>
+      <div class="ai-score ${a.sentiment}">${a.score != null ? a.score.toFixed(2) : '—'}</div>
     </div>
   `).join('');
 }
@@ -737,20 +677,34 @@ function setFilter(f) {
 }
 
 // ── RUN PIPELINE ───────────────────────────────────────────────────────────────
+let activePipeline = null;
+
+function showProgress(label, pct) {
+  const zone = document.getElementById('progress-zone');
+  zone.style.display = 'block';
+  document.getElementById('progress-label').textContent = label;
+  document.getElementById('progress-pct').textContent   = pct;
+  document.getElementById('progress-bar').style.width   = pct;
+}
+
+function hideProgress() {
+  document.getElementById('progress-zone').style.display = 'none';
+  activePipeline = null;
+}
+
 async function runPipeline(type) {
   const tickerRaw = document.getElementById('ticker-input').value;
   const tickers   = tickerRaw.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
   const loopOn    = document.getElementById('loop-toggle').checked;
   const loopVal   = parseInt(document.getElementById('loop-interval').value) || null;
 
-  if (!tickers.length) {
-    document.getElementById('run-status').textContent = '⚠ Aucun ticker saisi';
-    return;
-  }
+  if (!tickers.length) return;
 
-  const btn = document.getElementById('btn-' + type);
-  btn.disabled = true;
-  document.getElementById('run-status').textContent = '⟳ Lancement...';
+  activePipeline = type;
+  showProgress('Démarrage...', '0%');
+
+  document.getElementById('btn-sourcing').disabled      = (type === 'sourcing');
+  document.getElementById('btn-orchestrateur').disabled = (type === 'orchestrateur');
 
   const res = await fetch('/api/run_pipeline', {
     method: 'POST',
@@ -758,48 +712,35 @@ async function runPipeline(type) {
     body: JSON.stringify({ tickers, pipeline: type, loop: loopOn ? loopVal : null })
   }).then(r => r.json());
 
-  if (res.status === 'ok') {
-    document.getElementById('run-status').textContent = '✓ ' + res.message;
-  } else {
-    document.getElementById('run-status').textContent = '✗ ' + res.error;
-  }
-
-  setTimeout(() => { btn.disabled = false; }, 3000);
+  if (res.status !== 'ok') hideProgress();
 }
 
 async function updateProgressBars() {
+  if (dbEmpty || !activePipeline) return;
   const s = await fetch('/api/pipeline_status').then(r => r.json());
 
-  const src = s.sourcing || {};
-  if (src.running) {
-    document.getElementById('progress-sourcing').style.display = 'block';
-    document.getElementById('btn-sourcing').disabled = true;
-    const pct = src.tickers_total > 0 ? Math.round((src.tickers_done / src.tickers_total) * 100) : 0;
-    document.getElementById('bar-sourcing').style.width = pct + '%';
-    document.getElementById('pct-sourcing').textContent = pct + '%';
-    document.getElementById('label-sourcing').textContent = src.ticker_actuel ? 'Scan : ' + src.ticker_actuel : 'Démarrage...';
-  } else if (src.tickers_done > 0) {
-    document.getElementById('progress-sourcing').style.display = 'block';
-    document.getElementById('bar-sourcing').style.width = '100%';
-    document.getElementById('pct-sourcing').textContent = '100%';
-    document.getElementById('label-sourcing').textContent = '✓ Terminé — ' + (src.articles_saved || 0) + ' articles';
-    document.getElementById('btn-sourcing').disabled = false;
+  if (activePipeline === 'sourcing') {
+    const src = s.sourcing || {};
+    if (src.running) {
+      const pct = src.tickers_total > 0 ? Math.round((src.tickers_done / src.tickers_total) * 100) : 0;
+      showProgress(src.ticker_actuel ? 'Scan : ' + src.ticker_actuel : 'Démarrage...', pct + '%');
+      document.getElementById('btn-sourcing').disabled = true;
+    } else if (src.tickers_done > 0) {
+      showProgress('Terminé — ' + (src.articles_saved || 0) + ' articles', '100%');
+      document.getElementById('btn-sourcing').disabled = false;
+    }
   }
 
-  const orc = s.orchestrateur || {};
-  if (orc.running) {
-    document.getElementById('progress-orchestrateur').style.display = 'block';
-    document.getElementById('btn-orchestrateur').disabled = true;
-    const pct = orc.total > 0 ? Math.round((orc.done / orc.total) * 100) : 0;
-    document.getElementById('bar-orchestrateur').style.width = pct + '%';
-    document.getElementById('pct-orchestrateur').textContent = pct + '%';
-    document.getElementById('label-orchestrateur').textContent = orc.article_actuel ? orc.article_actuel : 'Analyse...';
-  } else if (orc.done > 0) {
-    document.getElementById('progress-orchestrateur').style.display = 'block';
-    document.getElementById('bar-orchestrateur').style.width = '100%';
-    document.getElementById('pct-orchestrateur').textContent = '100%';
-    document.getElementById('label-orchestrateur').textContent = '✓ Terminé — ' + orc.done + ' articles analysés';
-    document.getElementById('btn-orchestrateur').disabled = false;
+  if (activePipeline === 'orchestrateur') {
+    const orc = s.orchestrateur || {};
+    if (orc.running) {
+      const pct = orc.total > 0 ? Math.round((orc.done / orc.total) * 100) : 0;
+      showProgress(orc.article_actuel ? orc.article_actuel : 'Analyse...', pct + '%');
+      document.getElementById('btn-orchestrateur').disabled = true;
+    } else if (orc.done > 0) {
+      showProgress('Terminé — ' + orc.done + ' articles analysés', '100%');
+      document.getElementById('btn-orchestrateur').disabled = false;
+    }
   }
 }
 
@@ -808,6 +749,7 @@ async function refresh() {
   await loadStats();
   await loadTickerCards();
   await updateProgressBars();
+  if (selectedTicker) await loadArticles(selectedTicker);
 }
 
 

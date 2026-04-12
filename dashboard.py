@@ -29,7 +29,7 @@ def index():
 @app.route("/api/ticker_scores")
 def ticker_scores():
     rows = query("""
-        SELECT ticker, score_global, sentiment_global, nb_articles, confidence, calculated_at
+        SELECT ticker, score_global, sentiment_global, nb_articles, nb_neutral, confidence, calculated_at
         FROM ticker_scores
         ORDER BY calculated_at DESC
     """)

@@ -36,28 +36,35 @@ def build_prompt(ticker, title, content):
 RULES:
 - You MUST respond ONLY with a valid JSON object, nothing else.
 - No explanation, no introduction, no markdown, no backticks.
-- The JSON must follow EXACTLY this structure:
-{{
-  "sentiment": "bullish" | "bearish" | "neutral",
-  "score": <float between 0.0 and 1.0>,
-  "reasoning": "<one sentence explaining your choice in English>"
-}}
 
-SCORE GUIDELINES:
-- score close to 1.0 = very strong signal (very bullish or very bearish)
-- score close to 0.5 = weak or mixed signal
-- sentiment "neutral" always has score between 0.45 and 0.55
+If the article has a clear financial impact on the ticker, use bullish or bearish:
+{{"sentiment": "bullish", "score": <float 0.0-1.0>, "reasoning": "<one sentence>"}}
+{{"sentiment": "bearish", "score": <float 0.0-1.0>, "reasoning": "<one sentence>"}}
+
+If the article has NO direct financial impact (event announcements, general news, unrelated topics), use neutral:
+{{"sentiment": "neutral", "score": null, "reasoning": "<one sentence>"}}
+
+SCORE GUIDELINES (bullish and bearish only, never null):
+- 0.90 - 1.00 : very strong signal — record earnings, major acquisition, catastrophic news
+- 0.70 - 0.89 : strong signal — solid earnings beat, significant product launch, regulatory risk
+- 0.50 - 0.69 : mild signal — moderate beat/miss, minor news, indirect impact
 
 EXAMPLES:
 
 Article: "Apple reports record quarterly revenue, iPhone sales surge 15%"
-Response: {{"sentiment": "bullish", "score": 0.91, "reasoning": "Record revenue and strong iPhone sales indicate excellent financial performance."}}
+Response: {{"sentiment": "bullish", "score": 0.93, "reasoning": "Record revenue and strong iPhone sales indicate excellent financial performance."}}
 
-Article: "Microsoft faces antitrust investigation over cloud practices"
-Response: {{"sentiment": "bearish", "score": 0.76, "reasoning": "Antitrust investigation creates regulatory risk and uncertainty for the company."}}
+Article: "Apple slightly beats earnings estimates but guidance disappoints"
+Response: {{"sentiment": "bullish", "score": 0.58, "reasoning": "Modest earnings beat offset by weak guidance creates a mixed but slightly positive signal."}}
+
+Article: "Tesla faces massive recall of 2 million vehicles over safety defect"
+Response: {{"sentiment": "bearish", "score": 0.88, "reasoning": "Large-scale recall creates significant financial liability and reputational damage."}}
+
+Article: "Microsoft misses cloud revenue target by a small margin"
+Response: {{"sentiment": "bearish", "score": 0.61, "reasoning": "Minor cloud miss signals slight deceleration in growth but no major structural issue."}}
 
 Article: "Google announces date for annual developer conference"
-Response: {{"sentiment": "neutral", "score": 0.50, "reasoning": "Event announcement with no financial implications mentioned."}}
+Response: {{"sentiment": "neutral", "score": null, "reasoning": "Event announcement with no direct financial implications."}}
 
 ---
 
@@ -117,15 +124,24 @@ def parser_reponse(reponse_brute):
 
     # Validation des champs obligatoires
     sentiment = data.get("sentiment", "").lower()
-    score     = float(data.get("score", 0.0))
+    score_raw = data.get("score", None)
     reasoning = data.get("reasoning", "")
 
     if sentiment not in ("bullish", "bearish", "neutral"):
         raise ValueError(f"Sentiment invalide : {sentiment}")
-    if not (0.0 <= score <= 1.0):
-        raise ValueError(f"Score hors limites : {score}")
     if not reasoning:
         raise ValueError("Reasoning vide")
+
+    if sentiment == "neutral":
+        score = None
+    else:
+        if score_raw is None:
+            logger.warning(f"Score null reçu pour sentiment {sentiment}, fallback 0.70")
+            score = 0.70
+        else:
+            score = float(score_raw)
+            if not (0.0 <= score <= 1.0):
+                raise ValueError(f"Score hors limites : {score}")
 
     return sentiment, score, reasoning
 
@@ -149,10 +165,11 @@ def analyser_article(url, ticker, title, content):
         "url":         url,
         "ticker":      ticker,
         "sentiment":   sentiment,
-        "score":       score,
+        "score":       score,  # None si neutral
         "reasoning":   reasoning,
         "analyzed_at": datetime.now(timezone.utc).isoformat()
     }
 
-    logger.info(f"Résultat → {sentiment} ({score}) | {reasoning}")
+    score_disp = f"{score:.2f}" if score is not None else "null"
+    logger.info(f"Résultat → {sentiment} ({score_disp}) | {reasoning}")
     return resultat

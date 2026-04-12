@@ -59,12 +59,19 @@ def init_db(cursor):
             score_global     REAL,
             sentiment_global TEXT,
             nb_articles      INTEGER,
+            nb_neutral       INTEGER DEFAULT 0,
             confidence       TEXT,
             window_start     TEXT,
             window_end       TEXT,
             calculated_at    TEXT
         )
     ''')
+
+    # Migration : ajout de nb_neutral si la table existait déjà sans cette colonne
+    colonnes_ts = [row[1] for row in cursor.execute("PRAGMA table_info(ticker_scores)").fetchall()]
+    if "nb_neutral" not in colonnes_ts:
+        cursor.execute("ALTER TABLE ticker_scores ADD COLUMN nb_neutral INTEGER DEFAULT 0")
+        logger.info("Colonne nb_neutral ajoutée à ticker_scores")
 
     logger.info("Base de données initialisée")
 
