@@ -45,7 +45,8 @@ def article_scores():
     ticker = request.args.get("ticker", None)
     if ticker:
         rows = query("""
-            SELECT a.title, s.ticker, s.sentiment, s.score, s.reasoning, s.analyzed_at
+            SELECT a.title, s.ticker, s.sentiment, s.score, s.reasoning, s.analyzed_at,
+                   COALESCE(a.source, 'yahoo') as source
             FROM article_scores s
             JOIN articles a ON a.url = s.url
             WHERE s.ticker = ?
@@ -53,7 +54,8 @@ def article_scores():
         """, (ticker,))
     else:
         rows = query("""
-            SELECT a.title, s.ticker, s.sentiment, s.score, s.reasoning, s.analyzed_at
+            SELECT a.title, s.ticker, s.sentiment, s.score, s.reasoning, s.analyzed_at,
+                   COALESCE(a.source, 'yahoo') as source
             FROM article_scores s
             JOIN articles a ON a.url = s.url
             ORDER BY s.analyzed_at DESC

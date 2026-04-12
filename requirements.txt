@@ -4,3 +4,4 @@ lxml_html_clean
 trafilatura
 flask
 requests
+python-dotenv

@@ -487,7 +487,9 @@ updateClock();
 let selectedTicker = null;
 let pieChart = null;
 let histChart = null;
-let dbEmpty = false;
+let dbEmpty    = false;
+let dbAnalysed = 0;
+let dbTotal    = 0;
 
 // ── LOOP TOGGLE ────────────────────────────────────────────────────────────────
 document.getElementById('loop-toggle').addEventListener('change', function() {
@@ -503,7 +505,9 @@ async function loadStats() {
   document.getElementById('s-scores').textContent   = d.scores;
 
   // Si la base est vide, on cache les barres de progression
-  dbEmpty = d.total_articles === 0;
+  dbEmpty    = d.total_articles === 0;
+  dbAnalysed = d.analysed      || 0;
+  dbTotal    = d.total_articles || 0;
   if (dbEmpty) {
     document.getElementById('progress-sourcing').style.display      = 'none';
     document.getElementById('progress-orchestrateur').style.display = 'none';
@@ -661,6 +665,7 @@ async function loadArticles(ticker) {
     <div class="article-item">
       <div>
         <div class="ai-badge ${a.sentiment}">${a.sentiment}</div>
+        <div style="margin-top:.3rem;font-family:var(--font-mono);font-size:.55rem;color:var(--muted);text-align:center">${(a.source||'yahoo').toUpperCase()}</div>
       </div>
       <div>
         <div class="ai-title">${a.title}</div>
@@ -677,7 +682,10 @@ function setFilter(f) {
 }
 
 // ── RUN PIPELINE ───────────────────────────────────────────────────────────────
-let activePipeline = null;
+// activePipeline  = pipeline en cours de suivi (null si rien)
+// clickedPipeline = dernier bouton cliqué dans CETTE session
+let activePipeline  = null;
+let clickedPipeline = null;
 
 function showProgress(label, pct) {
   const zone = document.getElementById('progress-zone');
@@ -689,7 +697,8 @@ function showProgress(label, pct) {
 
 function hideProgress() {
   document.getElementById('progress-zone').style.display = 'none';
-  activePipeline = null;
+  activePipeline  = null;
+  clickedPipeline = null;
 }
 
 async function runPipeline(type) {
@@ -700,7 +709,8 @@ async function runPipeline(type) {
 
   if (!tickers.length) return;
 
-  activePipeline = type;
+  clickedPipeline = type;
+  activePipeline  = type;
   showProgress('Démarrage...', '0%');
 
   document.getElementById('btn-sourcing').disabled      = (type === 'sourcing');
@@ -716,28 +726,38 @@ async function runPipeline(type) {
 }
 
 async function updateProgressBars() {
-  if (dbEmpty || !activePipeline) return;
-  const s = await fetch('/api/pipeline_status').then(r => r.json());
+  if (dbEmpty) return;
+
+  const s   = await fetch('/api/pipeline_status').then(r => r.json());
+  const src = s.sourcing      || {};
+  const orc = s.orchestrateur || {};
+
+  // Si un pipeline tourne → on le suit, quelle que soit la session
+  if      (src.running) activePipeline = 'sourcing';
+  else if (orc.running) activePipeline = 'orchestrateur';
+  else                  activePipeline = clickedPipeline; // sinon on garde le dernier bouton cliqué
+
+  if (!activePipeline) return; // rien à afficher (page fraîche, rien cliqué)
 
   if (activePipeline === 'sourcing') {
-    const src = s.sourcing || {};
     if (src.running) {
       const pct = src.tickers_total > 0 ? Math.round((src.tickers_done / src.tickers_total) * 100) : 0;
       showProgress(src.ticker_actuel ? 'Scan : ' + src.ticker_actuel : 'Démarrage...', pct + '%');
       document.getElementById('btn-sourcing').disabled = true;
-    } else if (src.tickers_done > 0) {
-      showProgress('Terminé — ' + (src.articles_saved || 0) + ' articles', '100%');
+    } else if (src.tickers_done > 0 && dbTotal > 0) {
+      // Stale check : le status dit terminé ET la DB a bien des articles
+      showProgress('Terminé — ' + (src.articles_saved || 0) + ' articles collectés', '100%');
       document.getElementById('btn-sourcing').disabled = false;
     }
   }
 
   if (activePipeline === 'orchestrateur') {
-    const orc = s.orchestrateur || {};
     if (orc.running) {
       const pct = orc.total > 0 ? Math.round((orc.done / orc.total) * 100) : 0;
       showProgress(orc.article_actuel ? orc.article_actuel : 'Analyse...', pct + '%');
       document.getElementById('btn-orchestrateur').disabled = true;
-    } else if (orc.done > 0) {
+    } else if (orc.done > 0 && dbAnalysed > 0) {
+      // Stale check : le status dit terminé ET la DB a bien des articles analysés
       showProgress('Terminé — ' + orc.done + ' articles analysés', '100%');
       document.getElementById('btn-orchestrateur').disabled = false;
     }

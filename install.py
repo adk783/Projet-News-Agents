@@ -9,6 +9,7 @@ PACKAGES = [
     "trafilatura",
     "flask",
     "requests",
+    "python-dotenv",
 ]
 
 # ── 1. Dépendances Python ──────────────────────────────────────────────────────
