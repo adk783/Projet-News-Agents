@@ -1,0 +1,11 @@
+{
+  "prompt_prefix": "Assess the legal and regulatory risk in the following financial text: ",
+  "lexicon_size": 87,
+  "model_file": "./litigious_model\\model.joblib",
+  "benchmark_file": "./litigious_model\\benchmarks.json",
+  "external_sources": [
+    "financial_phrasebank",
+    "NickyNicky/Finance_sentiment_and_topic_classification_En",
+    "lex_glue/ledgar"
+  ]
+}

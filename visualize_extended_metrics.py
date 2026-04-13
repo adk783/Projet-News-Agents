@@ -19,6 +19,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from joblib import load
 
 
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -26,10 +27,17 @@ PLOTS_DIR = os.path.join(OUTPUT_DIR, "metrics_plots")
 DB_PATH = os.path.join(OUTPUT_DIR, "news_database.db")
 
 MARKET_IMPACT_METRICS_PATH = os.path.join(OUTPUT_DIR, "market_impact_model", "metrics.json")
+MARKET_IMPACT_CLASSIFIER_PATH = os.path.join(OUTPUT_DIR, "market_impact_model", "classifier.joblib")
+UNCERTAINTY_METRICS_PATH = os.path.join(OUTPUT_DIR, "uncertainty_model", "metrics.json")
+FUNDAMENTAL_METRICS_PATH = os.path.join(OUTPUT_DIR, "fundamental_strength_model", "metrics.json")
+LITIGIOUS_METRICS_PATH = os.path.join(OUTPUT_DIR, "litigious_model", "metrics.json")
 FUNDAMENTAL_BENCHMARKS_PATH = os.path.join(OUTPUT_DIR, "fundamental_strength_model", "benchmarks.json")
 LITIGIOUS_BENCHMARKS_PATH = os.path.join(OUTPUT_DIR, "litigious_model", "benchmarks.json")
 POLARITY_BENCHMARKS_PATH = os.path.join(OUTPUT_DIR, "benchmark_results", "polarity_benchmarks.json")
 UNCERTAINTY_BENCHMARKS_PATH = os.path.join(OUTPUT_DIR, "benchmark_results", "uncertainty_benchmarks.json")
+OUTPUT_METRICS_SUMMARY_CSV = os.path.join(PLOTS_DIR, "output_metrics_summary.csv")
+FINAL_MODEL_NUMERIC_WEIGHTS_CSV = os.path.join(PLOTS_DIR, "final_model_numeric_feature_weights.csv")
+BASE_OUTPUT_WEIGHTS_CSV = os.path.join(PLOTS_DIR, "base_output_weight_summary.csv")
 
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
@@ -56,6 +64,13 @@ LABEL_COLORS = {
 }
 DISPLAY_LABEL_ORDER = ["Bullish", "Neutral", "Bearish"]
 BENCHMARK_LABEL_ORDER = ["Bearish", "Neutral", "Bullish"]
+RAW_OUTPUTS = [
+    "polarity",
+    "polarity_conf",
+    "uncertainty",
+    "litigious",
+    "fundamental_strength",
+]
 
 
 def cleanup_existing_plots():
@@ -339,6 +354,281 @@ def plot_score_benchmarks(uncertainty_benchmarks, fundamental_benchmarks, litigi
     fig.savefig(path, dpi=150, facecolor=C_BG, bbox_inches="tight")
     plt.close()
     print(f"  OK {path}")
+
+
+def build_output_metrics_summary(
+    polarity_benchmarks,
+    uncertainty_benchmarks,
+    fundamental_benchmarks,
+    litigious_benchmarks,
+    uncertainty_metrics,
+    fundamental_metrics,
+    litigious_metrics,
+    market_impact_metrics,
+):
+    rows = [
+        {
+            "output": "polarity",
+            "type": "classification",
+            "training": "FinBERT pretrained",
+            "benchmark_main": f"PhraseBank direct n={polarity_benchmarks['phrasebank_sentiment']['dataset_size']}",
+            "main_score": f"Macro-F1 {polarity_benchmarks['phrasebank_sentiment']['macro_f1']:.3f}",
+            "hard_score": f"FiQA Macro-F1 {polarity_benchmarks['fiqa_sentiment']['macro_f1']:.3f}",
+            "verdict": "Tres fort sur sentiment clair, moyen sur FiQA",
+        },
+        {
+            "output": "uncertainty",
+            "type": "score [0,1]",
+            "training": f"{uncertainty_metrics['augmented_dataset_size']} ex.",
+            "benchmark_main": f"Nicky proxy n={uncertainty_benchmarks['nicky_topic_uncertainty_proxy']['dataset_size']}",
+            "main_score": f"AUC {uncertainty_benchmarks['nicky_topic_uncertainty_proxy']['roc_auc']:.3f}",
+            "hard_score": f"FiQA AUC {uncertainty_benchmarks['fiqa_aspect_uncertainty_proxy']['roc_auc']:.3f}",
+            "verdict": "Bon signal proxy, pas un label natif",
+        },
+        {
+            "output": "fundamental_strength",
+            "type": "score [0,1]",
+            "training": f"{fundamental_metrics['dataset_size']} ex.",
+            "benchmark_main": f"FiQA aspects n={fundamental_benchmarks['fiqa_aspect_fundamentals']['dataset_size']}",
+            "main_score": f"AUC {fundamental_benchmarks['fiqa_aspect_fundamentals']['roc_auc']:.3f}",
+            "hard_score": f"R2 train/eval {fundamental_metrics['r2']:.3f}",
+            "verdict": "Solide pour detecter les fondamentaux",
+        },
+        {
+            "output": "litigious",
+            "type": "score [0,1]",
+            "training": f"{litigious_metrics['dataset_size']} ex.",
+            "benchmark_main": f"Legal stress n={litigious_benchmarks['legal_domain_stress']['dataset_size']}",
+            "main_score": f"AUC {litigious_benchmarks['legal_domain_stress']['roc_auc']:.3f}",
+            "hard_score": f"FiQA legal AUC {litigious_benchmarks['fiqa_aspect_legal_risk']['roc_auc']:.3f}",
+            "verdict": "Tres bon legal evident, plus faible sur legal subtil",
+        },
+        {
+            "output": "market_impact_label",
+            "type": "classification",
+            "training": f"{market_impact_metrics['train_size']} train / {market_impact_metrics['test_size']} test",
+            "benchmark_main": "FNSPID rendement reel",
+            "main_score": f"Macro-F1 {market_impact_metrics['macro_f1']:.3f}",
+            "hard_score": f"Accuracy {market_impact_metrics['accuracy']:.3f}",
+            "verdict": "Tache tres dure, au-dessus du hasard",
+        },
+    ]
+    summary_df = pd.DataFrame(rows)
+    summary_df.to_csv(OUTPUT_METRICS_SUMMARY_CSV, index=False, encoding="utf-8")
+    return summary_df
+
+
+def plot_output_metrics_scorecard(summary_df):
+    fig, ax = plt.subplots(figsize=(19, 7), facecolor=C_BG)
+    fig.suptitle("10. Scorecard des outputs principaux", fontsize=16, fontweight="bold", y=0.97)
+    ax.axis("off")
+
+    display_df = summary_df.rename(
+        columns={
+            "output": "Output",
+            "type": "Type",
+            "training": "Training / source",
+            "benchmark_main": "Benchmark principal",
+            "main_score": "Score principal",
+            "hard_score": "Score complementaire",
+            "verdict": "Lecture rapide",
+        }
+    )
+    wrapped_df = display_df.copy()
+    for column in wrapped_df.columns:
+        wrapped_df[column] = wrapped_df[column].apply(
+            lambda value: "\n".join(textwrap.wrap(str(value), width=24))
+        )
+
+    table = ax.table(
+        cellText=wrapped_df.values,
+        colLabels=wrapped_df.columns,
+        loc="center",
+        cellLoc="center",
+        colLoc="center",
+        colWidths=[0.14, 0.10, 0.14, 0.17, 0.12, 0.15, 0.18],
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(9.5)
+    table.scale(1, 2.2)
+
+    for (row_idx, col_idx), cell in table.get_celld().items():
+        cell.set_edgecolor("#d6dee6")
+        if row_idx == 0:
+            cell.set_facecolor("#1f2d3d")
+            cell.set_text_props(color="white", weight="bold")
+        else:
+            cell.set_facecolor("#ffffff" if row_idx % 2 else "#f2f5f8")
+            if col_idx == 0:
+                cell.set_text_props(weight="bold", color="#1f2d3d")
+            if col_idx == 4:
+                cell.set_facecolor("#e8f7ef")
+
+    add_explanation(
+        fig,
+        "Cette scorecard resume les outputs comparables : ce que mesure chaque output, sur quoi il est entraine ou benchmarke, et le score a citer rapidement.",
+        y_pos=0.035,
+    )
+
+    path = os.path.join(PLOTS_DIR, "10_output_metrics_scorecard.png")
+    fig.savefig(path, dpi=150, facecolor=C_BG, bbox_inches="tight")
+    plt.close()
+    print(f"  OK {path}")
+    print(f"  OK {OUTPUT_METRICS_SUMMARY_CSV}")
+
+
+def plot_continuous_training_metrics(uncertainty_metrics, fundamental_metrics, litigious_metrics):
+    fig, axes = plt.subplots(1, 2, figsize=(17, 6), facecolor=C_BG)
+    fig.suptitle("11. Metriques d'entrainement des scores continus", fontsize=16, fontweight="bold", y=0.97)
+
+    labels = ["uncertainty", "fundamental\nstrength", "litigious"]
+    metrics_list = [uncertainty_metrics, fundamental_metrics, litigious_metrics]
+    colors = [C_PURPLE, C_POS, C_NEG]
+
+    r2_values = [metric["r2"] for metric in metrics_list]
+    axes[0].bar(labels, r2_values, color=colors, edgecolor="white", linewidth=1.2)
+    axes[0].set_title("R2 sur evaluation interne")
+    axes[0].set_ylim(0, 1.02)
+    axes[0].grid(axis="y", color=C_GRID, alpha=0.5)
+    axes[0].spines["top"].set_visible(False)
+    axes[0].spines["right"].set_visible(False)
+    for idx, value in enumerate(r2_values):
+        axes[0].text(idx, value + 0.025, f"{value:.3f}", ha="center", fontweight="bold")
+
+    x = np.arange(len(labels))
+    width = 0.34
+    mae_values = [metric["mae"] for metric in metrics_list]
+    rmse_values = [metric["rmse"] for metric in metrics_list]
+    axes[1].bar(x - width / 2, mae_values, width, color=C_BLUE, label="MAE", edgecolor="white", linewidth=1.2)
+    axes[1].bar(x + width / 2, rmse_values, width, color=C_ORANGE, label="RMSE", edgecolor="white", linewidth=1.2)
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(labels)
+    axes[1].set_title("Erreur moyenne des scores [0,1]")
+    axes[1].set_ylim(0, max(rmse_values) + 0.08)
+    axes[1].grid(axis="y", color=C_GRID, alpha=0.5)
+    axes[1].spines["top"].set_visible(False)
+    axes[1].spines["right"].set_visible(False)
+    axes[1].legend(loc="upper right")
+    for idx, value in enumerate(mae_values):
+        axes[1].text(idx - width / 2, value + 0.012, f"{value:.3f}", ha="center", fontweight="bold", fontsize=10)
+    for idx, value in enumerate(rmse_values):
+        axes[1].text(idx + width / 2, value + 0.012, f"{value:.3f}", ha="center", fontweight="bold", fontsize=10)
+
+    fig.tight_layout(rect=[0, 0.15, 1, 0.93])
+    add_explanation(
+        fig,
+        "R2 plus haut = meilleur. MAE/RMSE plus bas = meilleur. Ces metriques concernent les modeles de score continus, pas la classification finale FNSPID.",
+        y_pos=0.035,
+    )
+
+    path = os.path.join(PLOTS_DIR, "11_continuous_training_metrics.png")
+    fig.savefig(path, dpi=150, facecolor=C_BG, bbox_inches="tight")
+    plt.close()
+    print(f"  OK {path}")
+
+
+def extract_final_model_numeric_weights(market_impact_metrics):
+    classifier = load(MARKET_IMPACT_CLASSIFIER_PATH)
+    numeric_columns = market_impact_metrics["numeric_classifier_columns"]
+    feature_names = list(classifier.named_steps["features"].get_feature_names_out())
+    logistic = classifier.named_steps["classifier"]
+
+    rows = []
+    for class_index, class_name in enumerate(logistic.classes_):
+        coefficients = logistic.coef_[class_index]
+        for feature in numeric_columns:
+            feature_name = f"numeric__{feature}"
+            if feature_name not in feature_names:
+                continue
+            feature_index = feature_names.index(feature_name)
+            coefficient = float(coefficients[feature_index])
+            rows.append(
+                {
+                    "class": class_name,
+                    "feature": feature,
+                    "coefficient": coefficient,
+                    "abs_coefficient": abs(coefficient),
+                }
+            )
+
+    weights_df = pd.DataFrame(rows)
+    raw_summary_df = (
+        weights_df[weights_df["feature"].isin(RAW_OUTPUTS)]
+        .groupby("feature", as_index=False)
+        .agg(mean_abs_weight=("abs_coefficient", "mean"))
+        .sort_values("mean_abs_weight", ascending=False)
+    )
+    weights_df.to_csv(FINAL_MODEL_NUMERIC_WEIGHTS_CSV, index=False, encoding="utf-8")
+    raw_summary_df.to_csv(BASE_OUTPUT_WEIGHTS_CSV, index=False, encoding="utf-8")
+    return weights_df, raw_summary_df
+
+
+def plot_final_model_output_weights(weights_df, raw_summary_df):
+    fig, axes = plt.subplots(1, 2, figsize=(18, 7), facecolor=C_BG)
+    fig.suptitle("12. Poids des outputs dans le modele final", fontsize=16, fontweight="bold", y=0.97)
+
+    colors = [
+        C_POS if feature == "fundamental_strength"
+        else C_NEG if feature == "litigious"
+        else C_PURPLE if feature == "uncertainty"
+        else C_BLUE
+        for feature in raw_summary_df["feature"]
+    ]
+    axes[0].bar(
+        raw_summary_df["feature"],
+        raw_summary_df["mean_abs_weight"],
+        color=colors,
+        edgecolor="white",
+        linewidth=1.2,
+    )
+    axes[0].set_title("Importance moyenne des outputs de base")
+    axes[0].set_ylabel("Coefficient absolu moyen")
+    axes[0].grid(axis="y", color=C_GRID, alpha=0.5)
+    axes[0].spines["top"].set_visible(False)
+    axes[0].spines["right"].set_visible(False)
+    axes[0].tick_params(axis="x", rotation=18)
+    for idx, value in enumerate(raw_summary_df["mean_abs_weight"]):
+        axes[0].text(idx, value + 0.01, f"{value:.3f}", ha="center", fontweight="bold")
+
+    pivot_df = (
+        weights_df[weights_df["feature"].isin(RAW_OUTPUTS)]
+        .pivot(index="feature", columns="class", values="coefficient")
+        .reindex(RAW_OUTPUTS)
+        .fillna(0.0)
+    )
+    im = axes[1].imshow(pivot_df.values, cmap="RdYlGn", aspect="auto")
+    axes[1].set_xticks(np.arange(len(pivot_df.columns)))
+    axes[1].set_xticklabels(pivot_df.columns, fontweight="bold")
+    axes[1].set_yticks(np.arange(len(pivot_df.index)))
+    axes[1].set_yticklabels(pivot_df.index, fontweight="bold")
+    axes[1].set_title("Sens du poids par classe")
+    for row_idx in range(pivot_df.shape[0]):
+        for col_idx in range(pivot_df.shape[1]):
+            value = pivot_df.iloc[row_idx, col_idx]
+            axes[1].text(
+                col_idx,
+                row_idx,
+                f"{value:.2f}",
+                ha="center",
+                va="center",
+                fontweight="bold",
+                color="#1f2d3d",
+            )
+    fig.colorbar(im, ax=axes[1], fraction=0.046, pad=0.04, label="coefficient")
+
+    fig.tight_layout(rect=[0, 0.15, 1, 0.93])
+    add_explanation(
+        fig,
+        "Ces poids viennent de la regression logistique finale. Ils sont comparables car les features numeriques sont standardisees. Attention : le modele utilise aussi le texte TF-IDF et le ticker.",
+        y_pos=0.035,
+    )
+
+    path = os.path.join(PLOTS_DIR, "12_final_model_output_weights.png")
+    fig.savefig(path, dpi=150, facecolor=C_BG, bbox_inches="tight")
+    plt.close()
+    print(f"  OK {path}")
+    print(f"  OK {FINAL_MODEL_NUMERIC_WEIGHTS_CSV}")
+    print(f"  OK {BASE_OUTPUT_WEIGHTS_CSV}")
 
 
 def plot_benchmark_guide():
@@ -722,14 +1012,31 @@ def main():
 
     df = load_article_level_data()
     market_impact_metrics = load_json(MARKET_IMPACT_METRICS_PATH)
+    uncertainty_metrics = load_json(UNCERTAINTY_METRICS_PATH)
+    fundamental_metrics = load_json(FUNDAMENTAL_METRICS_PATH)
+    litigious_metrics = load_json(LITIGIOUS_METRICS_PATH)
     fundamental_benchmarks = load_json(FUNDAMENTAL_BENCHMARKS_PATH)
     litigious_benchmarks = load_json(LITIGIOUS_BENCHMARKS_PATH)
     polarity_benchmarks = load_json(POLARITY_BENCHMARKS_PATH)
     uncertainty_benchmarks = load_json(UNCERTAINTY_BENCHMARKS_PATH)
+    summary_df = build_output_metrics_summary(
+        polarity_benchmarks,
+        uncertainty_benchmarks,
+        fundamental_benchmarks,
+        litigious_benchmarks,
+        uncertainty_metrics,
+        fundamental_metrics,
+        litigious_metrics,
+        market_impact_metrics,
+    )
+    weights_df, raw_summary_df = extract_final_model_numeric_weights(market_impact_metrics)
 
     plot_classifier_benchmarks(polarity_benchmarks, market_impact_metrics)
     plot_fnspid_confusion_matrix(market_impact_metrics)
     plot_score_benchmarks(uncertainty_benchmarks, fundamental_benchmarks, litigious_benchmarks)
+    plot_output_metrics_scorecard(summary_df)
+    plot_continuous_training_metrics(uncertainty_metrics, fundamental_metrics, litigious_metrics)
+    plot_final_model_output_weights(weights_df, raw_summary_df)
     plot_benchmark_guide()
     plot_output_overview(df)
     plot_final_class_profiles(df)

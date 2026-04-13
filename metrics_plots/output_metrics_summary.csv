@@ -1,0 +1,6 @@
+output,type,training,benchmark_main,main_score,hard_score,verdict
+polarity,classification,FinBERT pretrained,PhraseBank direct n=909,Macro-F1 0.977,FiQA Macro-F1 0.566,"Tres fort sur sentiment clair, moyen sur FiQA"
+uncertainty,"score [0,1]",6731 ex.,Nicky proxy n=1600,AUC 0.894,FiQA AUC 0.806,"Bon signal proxy, pas un label natif"
+fundamental_strength,"score [0,1]",39404 ex.,FiQA aspects n=208,AUC 0.884,R2 train/eval 0.855,Solide pour detecter les fondamentaux
+litigious,"score [0,1]",62317 ex.,Legal stress n=2400,AUC 0.998,FiQA legal AUC 0.637,"Tres bon legal evident, plus faible sur legal subtil"
+market_impact_label,classification,9600 train / 2400 test,FNSPID rendement reel,Macro-F1 0.394,Accuracy 0.399,"Tache tres dure, au-dessus du hasard"

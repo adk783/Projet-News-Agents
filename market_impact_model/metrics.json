@@ -1,0 +1,237 @@
+{
+  "dataset_size": 12000,
+  "train_size": 9600,
+  "test_size": 2400,
+  "output_name": "market_impact_label",
+  "label_source": "benstaf/FNSPID-nasdaq-100-post2019-1newsperrow",
+  "benchmark_dataset_url": "https://huggingface.co/datasets/benstaf/FNSPID-nasdaq-100-post2019-1newsperrow",
+  "price_dataset": "beachside1234/FNSPID",
+  "price_dataset_url": "https://huggingface.co/datasets/beachside1234/FNSPID",
+  "benchmark_train_split": "train",
+  "benchmark_test_split": "validation",
+  "forward_trading_days": 2,
+  "return_threshold": 0.01,
+  "classifier_type": "hybrid_tfidf_numeric_logistic_regression",
+  "classifier_inputs": {
+    "text": "TF-IDF word ngrams from title and article/summary text",
+    "ticker": "one-hot encoded source ticker",
+    "numeric_vectors": [
+      "polarity",
+      "polarity_conf",
+      "uncertainty",
+      "litigious",
+      "fundamental_strength",
+      "risk_adjusted_sentiment",
+      "headline_conviction",
+      "fundamental_impact",
+      "business_quality_score",
+      "risk_pressure",
+      "market_signal_score",
+      "cluster_distance_0",
+      "cluster_distance_1",
+      "cluster_distance_2"
+    ]
+  },
+  "accuracy": 0.39875,
+  "macro_f1": 0.394296,
+  "log_loss": 1.090872,
+  "uniform_random_baseline_accuracy": 0.333333,
+  "train_majority_baseline_label": "Bearish",
+  "train_majority_baseline_accuracy": 0.32125,
+  "train_majority_baseline_macro_f1": 0.162094,
+  "validation_majority_label": "Neutral",
+  "validation_majority_accuracy": 0.355,
+  "validation_majority_macro_f1": 0.174662,
+  "silhouette_score": 0.280258,
+  "cluster_alignment_accuracy": 0.353646,
+  "cluster_alignment_macro_f1": 0.324392,
+  "class_distribution": {
+    "Bearish": 3229,
+    "Bullish": 3223,
+    "Neutral": 3148
+  },
+  "benchmark_class_distribution": {
+    "Neutral": 852,
+    "Bullish": 777,
+    "Bearish": 771
+  },
+  "source_prediction_distribution": {
+    "Bullish": 29,
+    "Bearish": 27,
+    "Neutral": 11
+  },
+  "cluster_profiles": [
+    {
+      "cluster_id": 0,
+      "support": 2275,
+      "market_impact_label": "Bullish",
+      "majority_share": 0.357363,
+      "cluster_score": -1.477092765602057,
+      "mean_polarity": -0.9481318681318681,
+      "mean_confidence": 0.8639024179060381,
+      "mean_uncertainty": 0.5218101978021978,
+      "mean_litigious": 0.06176518681318681,
+      "mean_fundamental_strength": 0.28907459340659336,
+      "mean_fundamental_impact": -0.24558781756586162,
+      "mean_business_quality": -0.047477171255361626,
+      "mean_risk_pressure": 0.31478994285714285,
+      "label_distribution": {
+        "Bullish": 813,
+        "Bearish": 796,
+        "Neutral": 666
+      }
+    },
+    {
+      "cluster_id": 1,
+      "support": 5971,
+      "market_impact_label": "Neutral",
+      "majority_share": 0.346676,
+      "cluster_score": -0.05745287278862817,
+      "mean_polarity": 0.23999330095461396,
+      "mean_confidence": 0.8050597698529588,
+      "mean_uncertainty": 0.41783575615474794,
+      "mean_litigious": 0.03269907888125942,
+      "mean_fundamental_strength": 0.24639532741584325,
+      "mean_fundamental_impact": 0.026677048276855686,
+      "mean_business_quality": 0.1602453080351241,
+      "mean_risk_pressure": 0.24452425138167813,
+      "label_distribution": {
+        "Neutral": 2070,
+        "Bullish": 1980,
+        "Bearish": 1921
+      }
+    },
+    {
+      "cluster_id": 2,
+      "support": 1354,
+      "market_impact_label": "Bearish",
+      "majority_share": 0.378139,
+      "cluster_score": 1.336279280010391,
+      "mean_polarity": 0.9970457902511078,
+      "mean_confidence": 0.8710807413743201,
+      "mean_uncertainty": 0.3607314623338257,
+      "mean_litigious": 0.018497858197932055,
+      "mean_fundamental_strength": 0.7048791728212703,
+      "mean_fundamental_impact": 0.6087560833713197,
+      "mean_business_quality": 0.5932517527658658,
+      "mean_risk_pressure": 0.2067263404726736,
+      "label_distribution": {
+        "Bearish": 512,
+        "Bullish": 430,
+        "Neutral": 412
+      }
+    }
+  ],
+  "confusion_matrix": [
+    [
+      318,
+      228,
+      225
+    ],
+    [
+      230,
+      408,
+      214
+    ],
+    [
+      306,
+      240,
+      231
+    ]
+  ],
+  "classification_report": {
+    "Bearish": {
+      "precision": 0.37236533957845436,
+      "recall": 0.41245136186770426,
+      "f1-score": 0.3913846153846154,
+      "support": 771.0
+    },
+    "Neutral": {
+      "precision": 0.4657534246575342,
+      "recall": 0.4788732394366197,
+      "f1-score": 0.4722222222222222,
+      "support": 852.0
+    },
+    "Bullish": {
+      "precision": 0.3447761194029851,
+      "recall": 0.2972972972972973,
+      "f1-score": 0.31928127159640635,
+      "support": 777.0
+    },
+    "accuracy": 0.39875,
+    "macro avg": {
+      "precision": 0.39429829454632453,
+      "recall": 0.39620729953387374,
+      "f1-score": 0.3942960364010813,
+      "support": 2400.0
+    },
+    "weighted avg": {
+      "precision": 0.39658609974971953,
+      "recall": 0.39875,
+      "f1-score": 0.3967385082605331,
+      "support": 2400.0
+    }
+  },
+  "feature_columns": [
+    "text",
+    "source_ticker",
+    "polarity",
+    "polarity_conf",
+    "uncertainty",
+    "litigious",
+    "fundamental_strength",
+    "risk_adjusted_sentiment",
+    "headline_conviction",
+    "fundamental_impact",
+    "business_quality_score",
+    "risk_pressure",
+    "market_signal_score",
+    "cluster_distance_0",
+    "cluster_distance_1",
+    "cluster_distance_2"
+  ],
+  "numeric_classifier_columns": [
+    "polarity",
+    "polarity_conf",
+    "uncertainty",
+    "litigious",
+    "fundamental_strength",
+    "risk_adjusted_sentiment",
+    "headline_conviction",
+    "fundamental_impact",
+    "business_quality_score",
+    "risk_pressure",
+    "market_signal_score",
+    "cluster_distance_0",
+    "cluster_distance_1",
+    "cluster_distance_2"
+  ],
+  "base_feature_columns": [
+    "polarity",
+    "polarity_conf",
+    "uncertainty",
+    "litigious",
+    "fundamental_strength",
+    "risk_adjusted_sentiment",
+    "headline_conviction",
+    "fundamental_impact",
+    "business_quality_score",
+    "risk_pressure",
+    "market_signal_score"
+  ],
+  "cluster_feature_columns": [
+    "cluster_distance_0",
+    "cluster_distance_1",
+    "cluster_distance_2"
+  ],
+  "training_datasets": {
+    "benstaf/FNSPID-nasdaq-100-post2019-1newsperrow": 9600
+  },
+  "label_mapping": {
+    "benstaf/FNSPID-nasdaq-100-post2019-1newsperrow": {
+      "forward_return > 0.01": "Bullish",
+      "forward_return < -0.01": "Bearish",
+      "|forward_return| <= 0.01": "Neutral"
+    }
+  }
+}

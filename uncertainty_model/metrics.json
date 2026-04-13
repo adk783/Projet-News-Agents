@@ -1,0 +1,31 @@
+{
+  "dataset_size": 5748,
+  "augmented_dataset_size": 6731,
+  "train_size": 5721,
+  "eval_size": 1010,
+  "training_sources_raw": {
+    "nicky_topic_proxy": 4500,
+    "training_csv": 600,
+    "fiqa_train_aspect_proxy": 437,
+    "human_review": 140,
+    "local_articles": 39,
+    "synthetic_examples": 32
+  },
+  "training_sources_effective": {
+    "nicky_topic_proxy": 4500,
+    "training_csv": 1200,
+    "fiqa_train_aspect_proxy": 437,
+    "human_review": 420,
+    "synthetic_examples": 96,
+    "local_articles": 78
+  },
+  "label_mean": 0.365708,
+  "label_min": 0.0,
+  "label_max": 0.9,
+  "mae": 0.105597,
+  "rmse": 0.146549,
+  "r2": 0.666512,
+  "model_type": "finbert_lora_regression",
+  "feature": "uncertainty",
+  "training_note": "External data is used only for training. Real-time sourced articles are used only at inference time."
+}

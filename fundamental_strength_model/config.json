@@ -1,0 +1,9 @@
+{
+  "lexicon_size": 51,
+  "model_file": "./fundamental_strength_model\\model.joblib",
+  "benchmark_file": "./fundamental_strength_model\\benchmarks.json",
+  "external_sources": [
+    "financial_phrasebank",
+    "NickyNicky/Finance_sentiment_and_topic_classification_En"
+  ]
+}

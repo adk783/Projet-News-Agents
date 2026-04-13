@@ -1,0 +1,50 @@
+{
+  "dataset_size": 62317,
+  "train_size": 49853,
+  "eval_size": 12464,
+  "training_sources": {
+    "nicky_sentiment": 37060,
+    "nicky_topic": 16902,
+    "lexglue_ledgar_train": 6000,
+    "financial_phrasebank": 2253,
+    "local_articles": 67,
+    "synthetic_examples": 24,
+    "fiqa_train_aspect": 11
+  },
+  "label_mean": 0.132093,
+  "label_min": 0.0,
+  "label_max": 0.92,
+  "mae": 0.055172,
+  "rmse": 0.098605,
+  "r2": 0.868866,
+  "model_type": "tfidf_ridge_regression",
+  "feature": "litigious",
+  "benchmarks": {
+    "fiqa_aspect_legal_risk": {
+      "dataset_size": 82,
+      "positive_share": 0.5,
+      "roc_auc": 0.636823,
+      "average_precision": 0.640196,
+      "accuracy_at_0_5": 0.512195,
+      "f1_at_0_5": 0.130435,
+      "best_threshold": 0.01,
+      "accuracy_best_threshold": 0.560976,
+      "f1_best_threshold": 0.632653,
+      "mean_positive_score": 0.099085,
+      "mean_negative_score": 0.046468
+    },
+    "legal_domain_stress": {
+      "dataset_size": 2400,
+      "positive_share": 0.5,
+      "roc_auc": 0.998334,
+      "average_precision": 0.997348,
+      "accuracy_at_0_5": 0.962083,
+      "f1_at_0_5": 0.960725,
+      "best_threshold": 0.25,
+      "accuracy_best_threshold": 0.990833,
+      "f1_best_threshold": 0.990864,
+      "mean_positive_score": 0.738771,
+      "mean_negative_score": 0.029408
+    }
+  }
+}

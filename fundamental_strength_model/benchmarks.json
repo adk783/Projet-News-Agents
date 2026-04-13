@@ -1,0 +1,28 @@
+{
+  "nicky_topic_fundamentals": {
+    "dataset_size": 2400,
+    "positive_share": 0.5,
+    "roc_auc": 0.831106,
+    "average_precision": 0.822342,
+    "accuracy_at_0_5": 0.755,
+    "f1_at_0_5": 0.707463,
+    "best_threshold": 0.12,
+    "accuracy_best_threshold": 0.7925,
+    "f1_best_threshold": 0.788085,
+    "mean_positive_score": 0.487191,
+    "mean_negative_score": 0.119237
+  },
+  "fiqa_aspect_fundamentals": {
+    "dataset_size": 208,
+    "positive_share": 0.5,
+    "roc_auc": 0.884292,
+    "average_precision": 0.903705,
+    "accuracy_at_0_5": 0.793269,
+    "f1_at_0_5": 0.751445,
+    "best_threshold": 0.09,
+    "accuracy_best_threshold": 0.865385,
+    "f1_best_threshold": 0.851064,
+    "mean_positive_score": 0.518133,
+    "mean_negative_score": 0.042296
+  }
+}

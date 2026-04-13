@@ -1,0 +1,18 @@
+[
+  "text",
+  "source_ticker",
+  "polarity",
+  "polarity_conf",
+  "uncertainty",
+  "litigious",
+  "fundamental_strength",
+  "risk_adjusted_sentiment",
+  "headline_conviction",
+  "fundamental_impact",
+  "business_quality_score",
+  "risk_pressure",
+  "market_signal_score",
+  "cluster_distance_0",
+  "cluster_distance_1",
+  "cluster_distance_2"
+]
