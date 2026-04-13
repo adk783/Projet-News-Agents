@@ -10,6 +10,7 @@ import logging
 import time
 import trafilatura
 import re
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from status_manager import write_status
 
 
@@ -88,28 +89,85 @@ def is_relevant(title, keywords):
     return False
 
 
-# ─── EXTRACTION DU CONTENU COMPLET ────────────────────────────────────────────
-def fetch_content(url, title):
-    """Tente d'extraire le contenu complet d'un article via Newspaper puis Trafilatura."""
-    content = ""
+# ─── DÉDUPLICATION INTER-SOURCES ──────────────────────────────────────────────
+def normalize_title(title):
+    """Normalise un titre pour comparaison : minuscules, sans ponctuation."""
+    return re.sub(r'[^a-z0-9\s]', '', title.lower()).strip()
+
+def insert_filtre(cursor, conn, url, ticker_symbol, title, date_utc, content, motif, match_count):
+    """Insère dans articles_filtres seulement si le titre n'existe pas déjà pour ce ticker."""
+    existing = cursor.execute(
+        "SELECT 1 FROM articles_filtres WHERE ticker = ? AND title = ?", (ticker_symbol, title)
+    ).fetchone()
+    if existing:
+        return
     try:
-        article = Article(url, request_timeout=10)
-        article.download()
-        article.parse()
-        content = article.text
-        logger.debug(f"Newspaper : {len(content)} caractères extraits")
+        cursor.execute('''
+            INSERT OR IGNORE INTO articles_filtres (url, ticker, title, date_utc, content, motif, match_count)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (url, ticker_symbol, title, date_utc, content, motif, match_count))
+        conn.commit()
     except Exception as e:
-        logger.warning(f"Newspaper a échoué pour '{title}' : {e}")
+        logger.error(f"Erreur sauvegarde filtre : {e}")
+
+
+def is_duplicate_title(title, cursor, ticker_symbol):
+    """Retourne True si un article avec exactement le même titre existe déjà en base pour ce ticker."""
+    norm = normalize_title(title)
+    rows = cursor.execute(
+        "SELECT title FROM articles WHERE ticker = ?", (ticker_symbol,)
+    ).fetchall()
+    for (existing_title,) in rows:
+        if normalize_title(existing_title) == norm:
+            return True, existing_title
+    return False, None
+
+
+# ─── EXTRACTION DU CONTENU COMPLET ────────────────────────────────────────────
+FETCH_TIMEOUT = 15  # timeout dur par article (secondes)
+
+def _fetch_newspaper(url):
+    article = Article(url, request_timeout=10)
+    article.download()
+    article.parse()
+    return article.text
+
+def _fetch_trafilatura(url):
+    resp = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+    if resp.ok:
+        return trafilatura.extract(resp.text) or ""
+    return ""
+
+def fetch_content(url, title):
+    """Tente d'extraire le contenu complet d'un article via Newspaper puis Trafilatura.
+    Chaque tentative est limitée à FETCH_TIMEOUT secondes via un thread dédié."""
+    content = ""
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(_fetch_newspaper, url)
+        try:
+            content = future.result(timeout=FETCH_TIMEOUT) or ""
+            logger.debug(f"Newspaper : {len(content)} caractères extraits")
+        except FuturesTimeoutError:
+            logger.warning(f"Newspaper timeout ({FETCH_TIMEOUT}s) pour '{title}'")
+            future.cancel()
+            return None  # signal timeout
+        except Exception as e:
+            logger.warning(f"Newspaper a échoué pour '{title}' : {e}")
 
     if len(content) < 100:
         logger.debug(f"Contenu trop court ({len(content)} car.), tentative avec trafilatura...")
-        try:
-            downloaded = trafilatura.fetch_url(url)
-            if downloaded:
-                content = trafilatura.extract(downloaded) or ""
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_fetch_trafilatura, url)
+            try:
+                content = future.result(timeout=FETCH_TIMEOUT) or ""
                 logger.debug(f"Trafilatura : {len(content)} caractères extraits")
-        except Exception as e:
-            logger.warning(f"Trafilatura a échoué pour '{title}' : {e}")
+            except FuturesTimeoutError:
+                logger.warning(f"Trafilatura timeout ({FETCH_TIMEOUT}s) pour '{title}'")
+                future.cancel()
+                return None  # signal timeout
+            except Exception as e:
+                logger.warning(f"Trafilatura a échoué pour '{title}' : {e}")
 
     return content
 
@@ -142,6 +200,11 @@ def fetch_yahoo(ticker_symbol, stock, keywords, cursor, conn, sector, industry):
 
         content = fetch_content(url, title)
 
+        if content is None:
+            logger.warning(f"[Yahoo] Article ignoré (timeout) : {title}")
+            insert_filtre(cursor, conn, url, ticker_symbol, title, date_utc, "", "timeout", 0)
+            continue
+
         if len(content) < 100:
             logger.warning(f"[Yahoo] Article ignoré (contenu trop court) : {title}")
             continue
@@ -151,14 +214,7 @@ def fetch_yahoo(ticker_symbol, stock, keywords, cursor, conn, sector, industry):
             count = sum(len(re.findall(r'\b' + re.escape(kw) + r'\b', content_lower)) for kw in keywords)
             if count < 3:
                 logger.info(f"[Yahoo] FILTRÉ ({count} match(s)) : {title}")
-                try:
-                    cursor.execute('''
-                        INSERT OR IGNORE INTO articles_filtres (url, ticker, title, date_utc, content, motif, match_count)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                    ''', (url, ticker_symbol, title, date_utc, content, "contenu_hors_sujet", count))
-                    conn.commit()
-                except Exception as e:
-                    logger.error(f"Erreur sauvegarde filtre : {e}")
+                insert_filtre(cursor, conn, url, ticker_symbol, title, date_utc, content, "contenu_hors_sujet", count)
                 continue
 
         try:
@@ -200,7 +256,7 @@ def fetch_finnhub(ticker_symbol, api_key, keywords, cursor, conn, sector, indust
         logger.error(f"[Finnhub] Erreur API pour {ticker_symbol} : {e}")
         return 0
 
-    # Garder uniquement les 10 plus récents (triés par datetime desc)
+    # Garder uniquement les 5 plus récents (triés par datetime desc)
     news_list = sorted(news_list, key=lambda x: x.get('datetime', 0), reverse=True)[:5]
     logger.debug(f"[Finnhub] {len(news_list)} articles retenus pour {ticker_symbol}")
 
@@ -219,7 +275,15 @@ def fetch_finnhub(ticker_symbol, api_key, keywords, cursor, conn, sector, indust
 
         # Tentative de récupération du contenu complet, fallback sur le summary
         content = fetch_content(url, title)
-        if len(content) < 100 and len(summary) >= 100:
+        if content is None:
+            if len(summary) >= 100:
+                content = summary
+                logger.debug(f"[Finnhub] Timeout — fallback sur summary ({len(summary)} car.)")
+            else:
+                logger.warning(f"[Finnhub] Article ignoré (timeout + summary insuffisant) : {title}")
+                insert_filtre(cursor, conn, url, ticker_symbol, title, date_utc, "", "timeout", 0)
+                continue
+        elif len(content) < 100 and len(summary) >= 100:
             content = summary
             logger.debug(f"[Finnhub] Fallback sur summary ({len(summary)} car.)")
 
@@ -232,15 +296,13 @@ def fetch_finnhub(ticker_symbol, api_key, keywords, cursor, conn, sector, indust
             count = sum(len(re.findall(r'\b' + re.escape(kw) + r'\b', content_lower)) for kw in keywords)
             if count < 3:
                 logger.info(f"[Finnhub] FILTRÉ ({count} match(s)) : {title}")
-                try:
-                    cursor.execute('''
-                        INSERT OR IGNORE INTO articles_filtres (url, ticker, title, date_utc, content, motif, match_count)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                    ''', (url, ticker_symbol, title, date_utc, content, "contenu_hors_sujet", count))
-                    conn.commit()
-                except Exception as e:
-                    logger.error(f"[Finnhub] Erreur sauvegarde filtre : {e}")
+                insert_filtre(cursor, conn, url, ticker_symbol, title, date_utc, content, "contenu_hors_sujet", count)
                 continue
+
+        dup, dup_title = is_duplicate_title(title, cursor, ticker_symbol)
+        if dup:
+            logger.info(f"[Finnhub] DOUBLON avec Yahoo ignoré : '{title}' ≈ '{dup_title}'")
+            continue
 
         try:
             cursor.execute('''
@@ -310,12 +372,12 @@ def run_news_pipeline(tickers):
     ''')
     conn.commit()
 
-    for ticker_symbol in tickers:
+    for i, ticker_symbol in enumerate(tickers):
         logger.info(f"=== Scan : {ticker_symbol} ===")
         write_status("sourcing", {
             "running": True,
             "ticker_actuel": ticker_symbol,
-            "tickers_done": tickers.index(ticker_symbol),
+            "tickers_done": i,
             "tickers_total": len(tickers),
             "articles_saved": cursor.execute("SELECT COUNT(*) FROM articles").fetchone()[0]
         })
