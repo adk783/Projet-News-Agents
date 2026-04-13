@@ -1,6 +1,9 @@
 # Ignorer la base de données SQLite locale
 news_database.db
 pipeline.log
+orchestrateur.log
+.env
+pipeline_status.json
 
 # Ignorer les dossiers cachés de Python
 __pycache__/
