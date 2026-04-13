@@ -48,28 +48,34 @@ except Exception:
     print("  → Télécharge et installe Ollama depuis : https://ollama.com/download")
     print("  → Lance l'application Ollama, puis relance ce script.")
 
-# ── 3. Vérification du modèle phi4-mini ───────────────────────────────────────
-if ollama_ok:
-    print("\n=== 3. Vérification du modèle phi4-mini ===\n")
+# ── 3. Vérification des modèles Ollama ────────────────────────────────────────
+def check_or_pull_model(model_name):
     try:
         import requests
         r = requests.post(
             "http://localhost:11434/api/generate",
-            json={"model": "phi4-mini", "prompt": "hi", "stream": False, "options": {"num_predict": 1}},
+            json={"model": model_name, "prompt": "hi", "stream": False, "options": {"num_predict": 1}},
             timeout=30
         )
         if r.status_code == 200:
-            print("  ✓ phi4-mini est disponible.")
+            print(f"  ✓ {model_name} est disponible.")
         else:
             raise Exception()
     except Exception:
-        print("  ✗ phi4-mini n'est pas installé. Téléchargement en cours...")
+        print(f"  ✗ {model_name} n'est pas installé. Téléchargement en cours...")
         print("  (cela peut prendre plusieurs minutes selon ta connexion)\n")
-        result = subprocess.run(["ollama", "pull", "phi4-mini"], capture_output=False)
+        result = subprocess.run(["ollama", "pull", model_name], capture_output=False)
         if result.returncode == 0:
-            print("\n  ✓ phi4-mini installé avec succès.")
+            print(f"\n  ✓ {model_name} installé avec succès.")
         else:
-            print("\n  ✗ Erreur. Lance manuellement dans un terminal : ollama pull phi4-mini")
+            print(f"\n  ✗ Erreur. Lance manuellement : ollama pull {model_name}")
+
+if ollama_ok:
+    print("\n=== 3. Vérification du modèle phi4-mini (sentiment) ===\n")
+    check_or_pull_model("phi4-mini")
+
+    print("\n=== 4. Vérification du modèle llama3.2:3b (filtrage) ===\n")
+    check_or_pull_model("llama3.2:3b")
 
 # ── Résumé final ───────────────────────────────────────────────────────────────
 print("\n=== Résumé ===\n")
