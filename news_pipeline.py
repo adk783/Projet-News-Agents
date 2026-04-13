@@ -12,6 +12,7 @@ import trafilatura
 import re
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from status_manager import write_status
+from agent_filtrage import est_pertinent
 
 
 logger = logging.getLogger("NewsPipeline")
@@ -173,7 +174,7 @@ def fetch_content(url, title):
 
 
 # ─── SOURCE YAHOO FINANCE ─────────────────────────────────────────────────────
-def fetch_yahoo(ticker_symbol, stock, keywords, cursor, conn, sector, industry):
+def fetch_yahoo(ticker_symbol, company_name, stock, keywords, cursor, conn, sector, industry):
     """Récupère et insère les articles Yahoo Finance pour un ticker."""
     saved = 0
     news_list = stock.news
@@ -209,6 +210,11 @@ def fetch_yahoo(ticker_symbol, stock, keywords, cursor, conn, sector, industry):
             logger.warning(f"[Yahoo] Article ignoré (contenu trop court) : {title}")
             continue
 
+        pertinent, motif_ia = est_pertinent(ticker_symbol, company_name, title, content)
+        if not pertinent:
+            insert_filtre(cursor, conn, url, ticker_symbol, title, date_utc, content, motif_ia, 0)
+            continue
+
         if not title_match:
             content_lower = content.lower()
             count = sum(len(re.findall(r'\b' + re.escape(kw) + r'\b', content_lower)) for kw in keywords)
@@ -238,7 +244,7 @@ def fetch_yahoo(ticker_symbol, stock, keywords, cursor, conn, sector, industry):
 
 
 # ─── SOURCE FINNHUB ───────────────────────────────────────────────────────────
-def fetch_finnhub(ticker_symbol, api_key, keywords, cursor, conn, sector, industry):
+def fetch_finnhub(ticker_symbol, company_name, api_key, keywords, cursor, conn, sector, industry):
     """Récupère et insère les articles Finnhub pour un ticker (3 derniers jours)."""
     saved = 0
     from_date = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%d')
@@ -289,6 +295,11 @@ def fetch_finnhub(ticker_symbol, api_key, keywords, cursor, conn, sector, indust
 
         if len(content) < 100:
             logger.warning(f"[Finnhub] Article ignoré (contenu trop court) : {title}")
+            continue
+
+        pertinent, motif_ia = est_pertinent(ticker_symbol, company_name, title, content)
+        if not pertinent:
+            insert_filtre(cursor, conn, url, ticker_symbol, title, date_utc, content, motif_ia, 0)
             continue
 
         if not title_match:
@@ -382,19 +393,20 @@ def run_news_pipeline(tickers):
             "articles_saved": cursor.execute("SELECT COUNT(*) FROM articles").fetchone()[0]
         })
 
-        stock    = yf.Ticker(ticker_symbol)
-        sector   = stock.info.get('sector', 'Inconnu')
-        industry = stock.info.get('industry', 'Inconnu')
-        keywords = build_keywords(stock.info)
-        logger.debug(f"{ticker_symbol} : mots-clés = {keywords}")
+        stock        = yf.Ticker(ticker_symbol)
+        sector       = stock.info.get('sector', 'Inconnu')
+        industry     = stock.info.get('industry', 'Inconnu')
+        company_name = stock.info.get('shortName', ticker_symbol)
+        keywords     = build_keywords(stock.info)
+        logger.debug(f"{ticker_symbol} ({company_name}) : mots-clés = {keywords}")
 
         # Yahoo Finance
-        saved_yahoo = fetch_yahoo(ticker_symbol, stock, keywords, cursor, conn, sector, industry)
+        saved_yahoo = fetch_yahoo(ticker_symbol, company_name, stock, keywords, cursor, conn, sector, industry)
         logger.info(f"[Yahoo] {saved_yahoo} nouveaux articles pour {ticker_symbol}")
 
         # Finnhub (si clé disponible)
         if finnhub_key:
-            saved_finnhub = fetch_finnhub(ticker_symbol, finnhub_key, keywords, cursor, conn, sector, industry)
+            saved_finnhub = fetch_finnhub(ticker_symbol, company_name, finnhub_key, keywords, cursor, conn, sector, industry)
             logger.info(f"[Finnhub] {saved_finnhub} nouveaux articles pour {ticker_symbol}")
 
     total = cursor.execute("SELECT COUNT(*) FROM articles").fetchone()[0]

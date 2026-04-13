@@ -44,10 +44,17 @@ If the article has a clear financial impact on the ticker, use bullish or bearis
 If the article has NO direct financial impact (event announcements, general news, unrelated topics), use neutral:
 {{"sentiment": "neutral", "score": null, "reasoning": "<one sentence>"}}
 
+SCORING APPROACH:
+- The TITLE carries 50% of the signal. If the title says "Gains", "Surges", "Beats", "Win", "Approval" → lean bullish. If it says "Falls", "Drops", "Misses", "Problem", "Dumping" → lean bearish.
+- The CONTENT carries the other 50% — use it to confirm and calibrate the score.
+- If title and content contradict each other, use neutral.
+- If the article is mainly about another company and the ticker is just mentioned as a partner or context → use neutral.
+
 SCORE GUIDELINES (bullish and bearish only, never null):
 - 0.90 - 1.00 : very strong signal — record earnings, major acquisition, catastrophic news
-- 0.70 - 0.89 : strong signal — solid earnings beat, significant product launch, regulatory risk
-- 0.50 - 0.69 : mild signal — moderate beat/miss, minor news, indirect impact
+- 0.70 - 0.89 : strong signal — solid earnings beat, significant product launch, regulatory approval
+- 0.50 - 0.69 : mild signal — moderate beat/miss, minor news, indirect impact, analyst opinion
+- Max 0.70 if the signal comes from a third party (analyst, fund manager, partner company)
 
 EXAMPLES:
 
@@ -57,11 +64,45 @@ Response: {{"sentiment": "bullish", "score": 0.93, "reasoning": "Record revenue 
 Article: "Apple slightly beats earnings estimates but guidance disappoints"
 Response: {{"sentiment": "bullish", "score": 0.58, "reasoning": "Modest earnings beat offset by weak guidance creates a mixed but slightly positive signal."}}
 
+Article: "Can Strong iPhone and Mac Portfolio Help Apple Stock Recover in FY26?"
+Response: {{"sentiment": "neutral", "score": null, "reasoning": "Article discusses recovery potential but presents no clear directional financial signal."}}
+
+Article: "Microsoft Gains Despite OpenAI Partnership Tensions"
+Response: {{"sentiment": "bullish", "score": 0.60, "reasoning": "Stock price gains despite partnership tensions signals resilient investor confidence."}}
+
+Article: "Microsoft stock down 21% this year — options strategy to buy at discount"
+Response: {{"sentiment": "bearish", "score": 0.70, "reasoning": "Significant YTD decline driven by slowing Azure growth and AI spending concerns."}}
+
 Article: "Tesla faces massive recall of 2 million vehicles over safety defect"
 Response: {{"sentiment": "bearish", "score": 0.88, "reasoning": "Large-scale recall creates significant financial liability and reputational damage."}}
 
+Article: "Tesla FSD gets Dutch regulatory approval, sets stage for EU rollout"
+Response: {{"sentiment": "bullish", "score": 0.75, "reasoning": "First European regulatory approval for FSD opens new market and software monetization opportunities."}}
+
+Article: "Wall Street analyst rode in Tesla robotaxi, revealed 1 problem Elon Musk must overcome"
+Response: {{"sentiment": "bearish", "score": 0.60, "reasoning": "Identified technological challenges in robotaxi efficiency signal execution risk."}}
+
+Article: "Gary Black says rumored Tesla Model Q could have huge upside but warns about marketing"
+Response: {{"sentiment": "neutral", "score": null, "reasoning": "Speculative future opportunity with identified weakness — no direct financial signal yet."}}
+
+Article: "Alphabet is among the high-flying AI stocks to buy — new Broadcom TPU deal"
+Response: {{"sentiment": "bullish", "score": 0.80, "reasoning": "Concrete long-term AI infrastructure deal with Broadcom signals strong growth trajectory."}}
+
 Article: "Microsoft misses cloud revenue target by a small margin"
 Response: {{"sentiment": "bearish", "score": 0.61, "reasoning": "Minor cloud miss signals slight deceleration in growth but no major structural issue."}}
+
+Article: "I'm not buying Nvidia right now — 2 other growth stocks are smarter plays"
+Response: {{"sentiment": "bearish", "score": 0.55, "reasoning": "Analyst recommends alternatives over Nvidia, suggesting limited near-term upside."}}
+
+Article: "Nvidia denies acquisition rumor that sparked Dell and HP rally"
+Response: {{"sentiment": "neutral", "score": null, "reasoning": "Denial of unconfirmed rumor with no direct financial impact on Nvidia."}}
+
+Article: "Intel climbs 5% on landmark Google partnership"
+Ticker: GOOGL
+Response: {{"sentiment": "neutral", "score": null, "reasoning": "Article is primarily about Intel's stock performance; Google is mentioned as a partner only."}}
+
+Article: "Apple stock outperforms HP and Microsoft year to date despite overall decline"
+Response: {{"sentiment": "neutral", "score": null, "reasoning": "Relative outperformance without a clear directional catalyst is not a strong financial signal."}}
 
 Article: "Google announces date for annual developer conference"
 Response: {{"sentiment": "neutral", "score": null, "reasoning": "Event announcement with no direct financial implications."}}
