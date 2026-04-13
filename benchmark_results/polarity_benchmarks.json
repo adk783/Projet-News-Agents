@@ -1,0 +1,42 @@
+{
+  "phrasebank_sentiment": {
+    "dataset_size": 909,
+    "accuracy": 0.976898,
+    "macro_f1": 0.976926,
+    "class_distribution": {
+      "negative": 303,
+      "neutral": 303,
+      "positive": 303
+    },
+    "prediction_distribution": {
+      "negative": 308,
+      "neutral": 297,
+      "positive": 304
+    },
+    "label_order": [
+      "negative",
+      "neutral",
+      "positive"
+    ]
+  },
+  "fiqa_sentiment": {
+    "dataset_size": 405,
+    "accuracy": 0.565432,
+    "macro_f1": 0.565666,
+    "class_distribution": {
+      "negative": 135,
+      "neutral": 135,
+      "positive": 135
+    },
+    "prediction_distribution": {
+      "negative": 121,
+      "neutral": 199,
+      "positive": 85
+    },
+    "label_order": [
+      "negative",
+      "neutral",
+      "positive"
+    ]
+  }
+}

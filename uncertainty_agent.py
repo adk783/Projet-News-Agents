@@ -23,17 +23,22 @@ Usage :
 
 import os
 import re
+import json
 import math
+import hashlib
 import logging
 import argparse
 import sqlite3
 from io import StringIO
 
+import numpy as np
 import pandas as pd
 import requests
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader, random_split
+from datasets import load_dataset
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from transformers import (
     AutoTokenizer,
@@ -60,6 +65,10 @@ LORA_DROPOUT = 0.05
 LM_LEXICON_URL = (
     "https://drive.google.com/uc?export=download&id=12ECPJMxV2wSalXG8ykMmkpa1fq_ur0Rf"
 )
+FIQA_DATASET = "TheFinAI/fiqa-sentiment-classification"
+NICKY_DATASET = "NickyNicky/Finance_sentiment_and_topic_classification_En"
+NICKY_HOLDOUT_MODULO = 5
+NICKY_TRAIN_BUCKETS = {0, 1, 2, 3}
 
 logger = logging.getLogger("UncertaintyAgent")
 logger.setLevel(logging.DEBUG)
@@ -236,40 +245,400 @@ def compute_uncertainty_score(text: str, lexicon: set) -> float:
     return round(score, 4)
 
 
+def _clip_score(score: float) -> float:
+    return round(max(0.0, min(float(score), 1.0)), 4)
+
+
+def _stable_bucket(text: str, modulo: int = NICKY_HOLDOUT_MODULO) -> int:
+    payload = (text or "").encode("utf-8", errors="ignore")
+    return int(hashlib.md5(payload).hexdigest(), 16) % modulo
+
+
+def _summarize_sources(df: pd.DataFrame) -> dict:
+    summary = {}
+    if df.empty or "source" not in df.columns:
+        return summary
+
+    for source_name, count in df["source"].value_counts().to_dict().items():
+        base_source = source_name[:-4] if source_name.endswith("_aug") else source_name
+        summary[base_source] = summary.get(base_source, 0) + int(count)
+    return summary
+
+
+def load_external_uncertainty_training_corpus(
+    lexicon: set,
+    max_nicky_per_band: int = 1500,
+) -> pd.DataFrame:
+    """
+    Construit un vrai corpus d'entrainement externe pour uncertainty.
+
+    Idee :
+    - Nicky Topics fournit un grand volume de textes financiers categories par topic
+    - FiQA fournit des aspects plus fins de risque / stabilite
+    - on transforme ces categories en scores proxy, puis on les melange
+      avec le score lexical pour obtenir une cible continue [0, 1]
+
+    Important :
+    - les buckets Nicky 0..3 sont utilises pour le train
+    - le bucket 4 reste reserve au benchmark public
+    """
+    logger.info("Chargement du corpus externe pour uncertainty...")
+
+    nicky_band_definitions = {
+        "low": {
+            "score": 0.10,
+            "topics": {
+                "Earnings",
+                "Financials",
+                "Dividend",
+                "Analyst Update",
+                "Personnel Change",
+                "Treasuries | Corporate Debt",
+            },
+        },
+        "medium": {
+            "score": 0.42,
+            "topics": {
+                "Company | Product News",
+                "Stock Commentary",
+                "M&A | Investments",
+                "Energy | Oil",
+                "Gold | Metals | Materials",
+            },
+        },
+        "high": {
+            "score": 0.82,
+            "topics": {
+                "Macro",
+                "Politics",
+                "Fed | Central Banks",
+                "Markets",
+                "General News | Opinion",
+                "Stock Movement",
+                "Currencies",
+                "Legal | Regulation",
+                "IPO",
+            },
+        },
+    }
+
+    nicky_topic_to_band = {}
+    for band_name, band_data in nicky_band_definitions.items():
+        for topic_name in band_data["topics"]:
+            nicky_topic_to_band[topic_name] = band_name
+
+    nicky = load_dataset(
+        NICKY_DATASET,
+        split="train",
+        trust_remote_code=True,
+    ).to_pandas()
+    nicky = nicky[nicky["task_type"] == "topic_classification"].copy()
+    nicky["text"] = nicky["user_prompt"].fillna("").astype(str).str.strip()
+    nicky = nicky[nicky["text"].str.len() > 20]
+    nicky["band"] = nicky["answer"].map(nicky_topic_to_band)
+    nicky = nicky[nicky["band"].notna()].copy()
+    nicky["bucket"] = nicky["text"].apply(_stable_bucket)
+    nicky = nicky[nicky["bucket"].isin(NICKY_TRAIN_BUCKETS)].copy()
+
+    sampled_nicky_frames = []
+    for band_name, band_df in nicky.groupby("band"):
+        if len(band_df) > max_nicky_per_band:
+            sampled_nicky_frames.append(
+                band_df.sample(n=max_nicky_per_band, random_state=42)
+            )
+        else:
+            sampled_nicky_frames.append(band_df)
+    nicky = pd.concat(sampled_nicky_frames, ignore_index=True)
+
+    nicky["proxy_score"] = nicky["band"].apply(
+        lambda band_name: nicky_band_definitions[band_name]["score"]
+    )
+    nicky["lexical_score"] = nicky["text"].apply(
+        lambda text: compute_uncertainty_score(text, lexicon)
+    )
+    nicky["score"] = (
+        0.72 * nicky["proxy_score"] + 0.28 * nicky["lexical_score"]
+    ).apply(_clip_score)
+    nicky["source"] = "nicky_topic_proxy"
+
+    fiqa_band_definitions = {
+        "low": {
+            "score": 0.10,
+            "aspects": {
+                "Corporate/Sales",
+                "Corporate/Sales/Deal",
+                "Corporate/Dividend Policy",
+                "Corporate/Appointment",
+                "Corporate/Appointment/Executive Appointment",
+                "Corporate/Financial/Financial Results/Earnings",
+                "Stock/Fundamentals",
+                "Stock/Coverage/AnalystRatings/Upgrade",
+            },
+        },
+        "medium": {
+            "score": 0.40,
+            "aspects": {
+                "Corporate/M&A/M&A",
+                "Corporate/M&A",
+                "Corporate/Strategy",
+                "Corporate/Company Communication",
+                "Market/Market",
+                "Market/Market/Market Trend",
+                "Stock/Price Action",
+                "Stock/Technical Analysis",
+            },
+        },
+        "high": {
+            "score": 0.80,
+            "aspects": {
+                "Corporate/Risks",
+                "Corporate/Risks/Product Recall",
+                "Corporate/Regulatory",
+                "Corporate/Legal",
+                "Corporate/Legal/Lawsuit",
+                "Corporate/Rumors/Rumors",
+                "Corporate/Rumors",
+                "Corporate/Rumors/Scoop",
+                "Corporate/M&A/Proposed Merger",
+                "Stock/Price Action/Volatility/Short Selling",
+                "Stock/Price Action/Bearish",
+                "Stock/Price Action/Bearish/Bearish Behavior",
+            },
+        },
+    }
+
+    fiqa_aspect_to_band = {}
+    for band_name, band_data in fiqa_band_definitions.items():
+        for aspect_name in band_data["aspects"]:
+            fiqa_aspect_to_band[aspect_name] = band_name
+
+    fiqa = load_dataset(FIQA_DATASET)
+    fiqa_frames = []
+    for split_name in ["train"]:
+        split_df = fiqa[split_name].to_pandas()
+        split_df["text"] = split_df["sentence"].fillna("").astype(str).str.strip()
+        split_df = split_df[split_df["text"].str.len() > 20]
+        split_df["band"] = split_df["aspect"].map(fiqa_aspect_to_band)
+        split_df = split_df[split_df["band"].notna()].copy()
+        fiqa_frames.append(split_df[["text", "band"]])
+
+    fiqa_df = pd.concat(fiqa_frames, ignore_index=True).drop_duplicates(subset=["text"])
+    fiqa_df["proxy_score"] = fiqa_df["band"].apply(
+        lambda band_name: fiqa_band_definitions[band_name]["score"]
+    )
+    fiqa_df["lexical_score"] = fiqa_df["text"].apply(
+        lambda text: compute_uncertainty_score(text, lexicon)
+    )
+    fiqa_df["score"] = (
+        0.75 * fiqa_df["proxy_score"] + 0.25 * fiqa_df["lexical_score"]
+    ).apply(_clip_score)
+    fiqa_df["source"] = "fiqa_train_aspect_proxy"
+
+    external_df = pd.concat(
+        [
+            nicky[["text", "score", "source"]],
+            fiqa_df[["text", "score", "source"]],
+        ],
+        ignore_index=True,
+    ).drop_duplicates(subset=["text", "source"])
+
+    logger.info(
+        "Corpus externe uncertainty charge : %s textes (%s)",
+        len(external_df),
+        _summarize_sources(external_df),
+    )
+    return external_df
+
+
+def load_csv_uncertainty_training_data(lexicon: set) -> pd.DataFrame:
+    if not os.path.exists(CSV_TRAINING_DATA):
+        logger.warning("CSV non trouve : %s", CSV_TRAINING_DATA)
+        return pd.DataFrame(columns=["text", "score", "source"])
+
+    logger.info("Chargement du dataset CSV : %s", CSV_TRAINING_DATA)
+    csv_df = pd.read_csv(CSV_TRAINING_DATA)
+    csv_df["text"] = csv_df["text"].fillna("").astype(str).str.strip()
+    csv_df = csv_df[csv_df["text"].str.len() > 20].copy()
+
+    level_mapping = {
+        "very_low": 0.05,
+        "low": 0.18,
+        "medium": 0.45,
+        "high": 0.72,
+        "very_high": 0.90,
+    }
+
+    if "level" in csv_df.columns:
+        csv_df["score"] = csv_df["level"].map(level_mapping)
+    else:
+        csv_df["score"] = np.nan
+
+    csv_df["score"] = csv_df["score"].fillna(
+        csv_df["text"].apply(lambda text: compute_uncertainty_score(text, lexicon))
+    )
+    csv_df["score"] = csv_df["score"].apply(_clip_score)
+    csv_df["source"] = "training_csv"
+    return csv_df[["text", "score", "source"]]
+
+
+def augment_training_dataframe(df: pd.DataFrame, lexicon: set) -> pd.DataFrame:
+    """
+    Augmentation selective :
+    - forte sur les labels humains / synthétiques
+    - legere sur le CSV et les articles locaux
+    - aucune sur les gros corpus externes deja volumineux
+    """
+    if df.empty:
+        return df
+
+    rows = []
+    heavy_sources = {"human_review", "synthetic_examples"}
+    medium_sources = {"local_articles", "training_csv"}
+
+    for _, row in df.iterrows():
+        source_name = row["source"]
+        rows.append(
+            {"text": row["text"], "score": _clip_score(row["score"]), "source": source_name}
+        )
+
+        if source_name in heavy_sources:
+            repeat_count = 2
+        elif source_name in medium_sources:
+            repeat_count = 1
+        else:
+            repeat_count = 0
+
+        for _ in range(repeat_count):
+            augmented_text = augment_text(row["text"])
+            if source_name == "human_review":
+                augmented_score = _clip_score(row["score"])
+            else:
+                lexical_aug = compute_uncertainty_score(augmented_text, lexicon)
+                augmented_score = _clip_score(0.65 * row["score"] + 0.35 * lexical_aug)
+            rows.append(
+                {
+                    "text": augmented_text,
+                    "score": augmented_score,
+                    "source": f"{source_name}_aug",
+                }
+            )
+
+    return pd.DataFrame(rows)
+
+
+def save_training_metrics(
+    output_dir: str,
+    raw_df: pd.DataFrame,
+    augmented_df: pd.DataFrame,
+    train_size: int,
+    eval_size: int,
+    eval_labels,
+    eval_predictions,
+):
+    os.makedirs(output_dir, exist_ok=True)
+    metrics_path = os.path.join(output_dir, "metrics.json")
+
+    metrics = {
+        "dataset_size": int(len(raw_df)),
+        "augmented_dataset_size": int(len(augmented_df)),
+        "train_size": int(train_size),
+        "eval_size": int(eval_size),
+        "training_sources_raw": _summarize_sources(raw_df),
+        "training_sources_effective": _summarize_sources(augmented_df),
+        "label_mean": round(float(raw_df["score"].mean()), 6),
+        "label_min": round(float(raw_df["score"].min()), 6),
+        "label_max": round(float(raw_df["score"].max()), 6),
+        "mae": round(float(mean_absolute_error(eval_labels, eval_predictions)), 6),
+        "rmse": round(float(math.sqrt(mean_squared_error(eval_labels, eval_predictions))), 6),
+        "r2": round(float(r2_score(eval_labels, eval_predictions)), 6),
+        "model_type": "finbert_lora_regression",
+        "feature": "uncertainty",
+        "training_note": "External data is used only for training. Real-time sourced articles are used only at inference time.",
+    }
+
+    with open(metrics_path, "w", encoding="utf-8") as handle:
+        json.dump(metrics, handle, indent=2)
+
+    logger.info("Metrics uncertainty sauvegardees : %s", metrics_path)
+
+
 def generate_weak_labels(db_path: str, lexicon: set, max_samples: int = None) -> pd.DataFrame:
     """
-    Génère les weak labels pour les articles de la base SQLite.
+    Génère les weak labels pour les articles et y injecte le Golden Dataset (Corrections humaines).
     Retourne un DataFrame avec colonnes : text, score
     """
-    logger.info(f"Génération des weak labels depuis {db_path}...")
+    logger.info(f"Génération des weak labels et intégration du Golden Dataset depuis {db_path}...")
 
-    df = pd.DataFrame()
+    df_raw = pd.DataFrame()
     try:
         conn = sqlite3.connect(db_path)
-        query = "SELECT content FROM articles WHERE content IS NOT NULL AND LENGTH(content) > 100"
-        df = pd.read_sql_query(query, conn)
+        # Left join to get human scores if they exist
+        query = """
+            SELECT a.content, hr.human_status, hr.human_score 
+            FROM articles a
+            LEFT JOIN human_reviews hr ON a.url = hr.url
+            WHERE a.content IS NOT NULL AND LENGTH(a.content) > 100
+        """
+        df_raw = pd.read_sql_query(query, conn)
         conn.close()
     except Exception as e:
         logger.warning(f"Impossible de lire la base ({e}). Utilisation de données synthétiques.")
 
-    if df.empty:
+    if df_raw.empty:
         logger.warning("Aucun article trouvé dans la base. Utilisation de données synthétiques.")
-        df = _generate_synthetic_data(lexicon)
+        df_raw = _generate_synthetic_data(lexicon)
+        df_raw["human_status"] = None
+        df_raw["human_score"] = None
     else:
-        logger.info(f"{len(df)} articles trouvés dans la base.")
+        logger.info(f"{len(df_raw)} articles trouvés dans la base.")
 
-    if max_samples and len(df) > max_samples:
-        df = df.sample(n=max_samples, random_state=42).reset_index(drop=True)
+    if max_samples and len(df_raw) > max_samples:
+        df_raw = df_raw.sample(n=max_samples, random_state=42).reset_index(drop=True)
 
-    df["text"] = df["content"]
-    df["score"] = df["text"].apply(lambda t: compute_uncertainty_score(t, lexicon))
+    texts = []
+    scores = []
+    sources = []
+    
+    human_count = 0
+    rejected_count = 0
 
-    logger.info(f"Weak labels générés : {len(df)} échantillons")
+    for _, row in df_raw.iterrows():
+        status = row.get("human_status")
+        score = row.get("human_score")
+        content = row["content"]
+
+        # 1. Ignorer complètement les articles rejetés par l'humain
+        if status == "rejected":
+            rejected_count += 1
+            continue
+
+        # 2. Golden Dataset: Utiliser le score validé (Approuvé ou Modifié)
+        if status in ["approved", "modified"] and pd.notna(score):
+            human_count += 1
+            # OVERSAMPLING x5: on donne un "poids" énorme à la correction humaine !
+            for _ in range(5):
+                texts.append(content)
+                scores.append(score)
+                sources.append("human_review")
+        else:
+            # 3. Weak Label: Utiliser l'algorithme "Professeur Automatisé" pour le reste
+            weak_score = compute_uncertainty_score(content, lexicon)
+            texts.append(content)
+            scores.append(weak_score)
+            sources.append("local_articles")
+
+    logger.info(f"🏁 Golden Dataset appliqué !")
+    logger.info(f"  -> {human_count} corrections humaines injectées avec Oversampling (x5).")
+    logger.info(f"  -> {rejected_count} articles jugés hors-sujet et supprimés.")
+
+    df = pd.DataFrame({"text": texts, "score": scores, "source": sources})
+    
+    logger.info(f"Oversampled Weak + Golden labels : {len(df)} échantillons au total")
     logger.info(f"  Score moyen : {df['score'].mean():.4f}")
     logger.info(f"  Score min   : {df['score'].min():.4f}")
     logger.info(f"  Score max   : {df['score'].max():.4f}")
 
-    return df[["text", "score"]]
+    return df
 
 
 def _generate_synthetic_data(lexicon: set) -> pd.DataFrame:
@@ -394,7 +763,29 @@ def _generate_synthetic_data(lexicon: set) -> pd.DataFrame:
         "levels suggest cautious optimism, though consumer confidence surveys show mixed signals.",
     ]
 
-    texts = high_uncertainty + low_uncertainty + medium_uncertainty
+    speculative_articles = [
+        "Bro hear me out, the word on the street is that this penny stock is about to explode x100 next week!!! "
+        "Literally no proof yet, but my cousin's roommate says the CEO is secretly meeting with Elon Musk. "
+        "Could be a massive rug pull, or we could all be billionaires by Friday. Who knows?!",
+        
+        "Panic selling everywhere on Crypto Twitter right now! Rumors flying that the SEC is about to ban "
+        "everything or maybe just fine the exchanges. Total chaos, nobody has any idea what's actually happening. "
+        "I might sell everything or double down, completely unsure of the market direction.",
+        
+        "Is this the next GameStop squeeze?? Forum posters are hyping up this bankrupt retail chain saying a "
+        "massive short squeeze is imminent. Fundamental analysis says it's worthless, but the hype train "
+        "might just carry it to the moon anyway. Pure casino gambling at this point.",
+        
+        "Unconfirmed leaks suggest Apple might acquire Disney, or maybe buy a car company, or just do nothing. "
+        "Wall Street analysts are completely divided and the stock price is just bouncing erratically on every "
+        "random tweet. Absolutely zero visibility on what Q4 will actually look like.",
+        
+        "YOLO'd my entire life savings into this obscure altcoin because some influencer pumped it on stream. "
+        "The whitepaper makes no sense and the founders are anonymous. Might go to zero tomorrow, might "
+        "randomly pump 5000%. There is literally zero fundamental value, just pure speculation vibes."
+    ]
+
+    texts = high_uncertainty + low_uncertainty + medium_uncertainty + speculative_articles
     data = pd.DataFrame({"content": texts})
     return data
 
@@ -678,6 +1069,168 @@ def train_model(
 # 6. AGENT D'INFÉRENCE
 # ══════════════════════════════════════════════
 
+def train_model(
+    db_path: str = "news_database.db",
+    output_dir: str = MODEL_OUTPUT_DIR,
+    epochs: int = 6,
+    batch_size: int = 16,
+    learning_rate: float = 3e-5,
+    max_samples: int = None,
+):
+    """
+    Version renforcee :
+    - garde les articles du projet pour le contexte local
+    - ajoute des corpus externes finances plus structures pour le training
+    - laisse le sourcing temps reel uniquement pour l'inference future
+    """
+    import random as _rng
+
+    _rng.seed(42)
+
+    lexicon = download_lm_uncertainty_lexicon()
+
+    local_df = generate_weak_labels(db_path, lexicon, max_samples=max_samples)
+
+    synthetic_df = _generate_synthetic_data(lexicon)
+    synthetic_df["text"] = synthetic_df["content"]
+    synthetic_df["score"] = synthetic_df["text"].apply(
+        lambda text: compute_uncertainty_score(text, lexicon)
+    )
+    synthetic_df["source"] = "synthetic_examples"
+    synthetic_df = synthetic_df[["text", "score", "source"]]
+
+    csv_df = load_csv_uncertainty_training_data(lexicon)
+    external_df = load_external_uncertainty_training_corpus(lexicon)
+
+    df = pd.concat(
+        [local_df, synthetic_df, csv_df, external_df],
+        ignore_index=True,
+    )
+    df["text"] = df["text"].fillna("").astype(str).str.strip()
+    df = df[df["text"].str.len() > 20].copy()
+
+    logger.info("Dataset uncertainty avant augmentation : %s echantillons", len(df))
+    logger.info("  Sources : %s", _summarize_sources(df))
+    logger.info(f"  Score moyen : {df['score'].mean():.4f}")
+    logger.info(f"  Score min   : {df['score'].min():.4f}")
+    logger.info(f"  Score max   : {df['score'].max():.4f}")
+
+    df_augmented = augment_training_dataframe(df, lexicon)
+    logger.info("Dataset uncertainty apres augmentation : %s echantillons", len(df_augmented))
+    logger.info("  Sources effectives : %s", _summarize_sources(df_augmented))
+    logger.info(f"  Score moyen : {df_augmented['score'].mean():.4f}")
+    logger.info(f"  Score min   : {df_augmented['score'].min():.4f}")
+    logger.info(f"  Score max   : {df_augmented['score'].max():.4f}")
+
+    model, tokenizer = build_model()
+
+    dataset = UncertaintyDataset(
+        texts=df_augmented["text"].tolist(),
+        scores=df_augmented["score"].tolist(),
+        tokenizer=tokenizer,
+    )
+
+    train_size = int(0.85 * len(dataset))
+    eval_size = len(dataset) - train_size
+
+    if eval_size == 0:
+        train_dataset = dataset
+        eval_dataset = dataset
+        logger.warning("Pas assez de donnees pour split - eval = train")
+    else:
+        train_dataset, eval_dataset = random_split(
+            dataset,
+            [train_size, eval_size],
+            generator=torch.Generator().manual_seed(42),
+        )
+
+    logger.info("Train : %s | Eval : %s", len(train_dataset), len(eval_dataset))
+
+    use_gpu = torch.cuda.is_available()
+    if use_gpu:
+        logger.info("GPU detecte : %s", torch.cuda.get_device_name(0))
+        logger.info(
+            "VRAM totale : %.1f GB",
+            torch.cuda.get_device_properties(0).total_memory / 1e9,
+        )
+    else:
+        logger.warning("Pas de GPU detecte - entrainement sur CPU (lent)")
+
+    training_args = TrainingArguments(
+        output_dir=output_dir,
+        num_train_epochs=epochs,
+        per_device_train_batch_size=batch_size,
+        per_device_eval_batch_size=batch_size * 2,
+        learning_rate=learning_rate,
+        weight_decay=0.01,
+        warmup_ratio=0.06,
+        lr_scheduler_type="cosine",
+        gradient_accumulation_steps=1,
+        eval_strategy="epoch",
+        save_strategy="epoch",
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
+        logging_steps=25,
+        save_total_limit=2,
+        fp16=use_gpu,
+        dataloader_num_workers=0,
+        report_to="none",
+        seed=42,
+        disable_tqdm=False,
+    )
+
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+    )
+
+    logger.info(
+        "Debut du nouvel entrainement uncertainty - %s epoques, batch=%s, GPU=%s",
+        epochs,
+        batch_size,
+        use_gpu,
+    )
+    trainer.train()
+
+    eval_output = trainer.predict(eval_dataset)
+    eval_predictions = np.asarray(eval_output.predictions).reshape(-1)
+    eval_predictions = np.clip(eval_predictions, 0.0, 1.0)
+    eval_labels = np.array(
+        [float(eval_dataset[idx]["labels"].item()) for idx in range(len(eval_dataset))]
+    )
+
+    logger.info("Fusion des adaptateurs LoRA et sauvegarde dans %s/", output_dir)
+    try:
+        merged_model = model.merge_and_unload()
+        merged_model.save_pretrained(output_dir)
+        tokenizer.save_pretrained(output_dir)
+        logger.info("Modele uncertainty fusionne et sauvegarde !")
+    except Exception as exc:
+        logger.warning(
+            "Merge LoRA a echoue (%s), sauvegarde du modele PEFT directement...",
+            exc,
+        )
+        model.save_pretrained(output_dir)
+        tokenizer.save_pretrained(output_dir)
+        logger.info("Modele uncertainty PEFT sauvegarde (sans merge) !")
+
+    save_training_metrics(
+        output_dir=output_dir,
+        raw_df=df,
+        augmented_df=df_augmented,
+        train_size=len(train_dataset),
+        eval_size=len(eval_dataset),
+        eval_labels=eval_labels,
+        eval_predictions=eval_predictions,
+    )
+
+    logger.info("Nouvel entrainement uncertainty termine !")
+    return model, tokenizer
+
+
 class UncertaintyAgent:
     """
     Agent d'inférence pour prédire l'incertitude financière.
@@ -804,7 +1357,7 @@ def main():
     parser.add_argument(
         "--epochs",
         type=int,
-        default=50,
+        default=6,
         help="Nombre d'époques d'entraînement",
     )
     parser.add_argument(

@@ -7,4 +7,7 @@ __pycache__/
 *.pyc  
 # Model and outputs
 uncertainty_model/
+litigious_model/
+fundamental_strength_model/
+investment_model/
 metrics_plots/

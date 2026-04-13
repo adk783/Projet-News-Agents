@@ -8,3 +8,4 @@ peft
 datasets
 pandas
 requests
+scikit-learn
