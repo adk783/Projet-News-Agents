@@ -216,12 +216,11 @@ _DEBATE_CONFIGS: dict = {
         "env_key": "NVIDIA_NIM_API_KEY",
         "family": "moonshot",
     },
-    "nim_ministral": {
-        # Alternative Mistral (2.6s, 110w) si on veut Mistral plus puissant
-        "model": "mistralai/ministral-14b-instruct-2512",
-        "base_url": "https://integrate.api.nvidia.com/v1",
-        "env_key": "NVIDIA_NIM_API_KEY",
-        "family": "mistral",
+    "groq_gpt_oss": {
+        "model": "openai/gpt-oss-120b",
+        "base_url": "https://api.groq.com/openai/v1",
+        "env_key": "GROQ_API_KEY",
+        "family": "gpt-oss",
     },
 }
 
@@ -233,7 +232,7 @@ _ROLE_PREFERENCES: dict = {
     # Bull -> NIM Kimi-K2 (Moonshot-trained, 16.8s bench live, raisonnement financier EXCELLENT)
     "bull": ["nim_kimi", "cerebras", "groq"],
     # Bear -> NIM Ministral-14B (Mistral-trained, 2.3s bench live, AIME=85)
-    "bear": ["nim_ministral", "groq", "cerebras", "mistral"],
+    "bear": ["groq_gpt_oss", "groq", "cerebras", "mistral"],
     # Neutre -> NIM Qwen3-Next-80B (Alibaba-trained, 3.8s bench live)
     "neutral": ["nim_qwen", "mistral", "groq"],
     # Consensus -> Groq Llama-3.3-70B (Meta-trained, ~3-5s)
