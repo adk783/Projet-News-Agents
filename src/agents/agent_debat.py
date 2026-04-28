@@ -297,13 +297,18 @@ def _get_model_client(provider_or_role: str) -> tuple[OpenAIChatCompletionClient
 
         # Si on a des fallbacks, on monkey-patch la methode create() pour gerer la bascule auto
         if len(clients_chain) > 1:
+            original_create = primary_client.create
+            original_create_stream = primary_client.create_stream
+            
             async def resilient_create(*args, **kwargs):
                 last_err = None
                 for i, c in enumerate(clients_chain):
                     try:
                         if i > 0:
                             logger.warning(f"[Fallback] Tentative de bascule sur {names_chain[i]}...")
-                        return await c.create(*args, **kwargs)
+                            return await c.create(*args, **kwargs)
+                        else:
+                            return await original_create(*args, **kwargs)
                     except Exception as e:
                         logger.error(f"[Fallback] Echec LLM {names_chain[i]} : {e}")
                         last_err = e
@@ -315,7 +320,10 @@ def _get_model_client(provider_or_role: str) -> tuple[OpenAIChatCompletionClient
                     try:
                         if i > 0:
                             logger.warning(f"[Fallback Stream] Tentative de bascule sur {names_chain[i]}...")
-                        generator = c.create_stream(*args, **kwargs)
+                            generator = c.create_stream(*args, **kwargs)
+                        else:
+                            generator = original_create_stream(*args, **kwargs)
+                        
                         async for chunk in generator:
                             yield chunk
                         return

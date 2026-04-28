@@ -788,3 +788,27 @@ Le pipeline utilisait `Ministral-14B` (via NVIDIA NIM) comme agent Baissier. Lor
 - (+) Résilience totale : un quota API (Groq) dépassé ou une API instable n'interrompt plus la boucle de Paper Trading.
 - (+) Diversité préservée : L'introduction du modèle `gpt-oss-120b` apporte une nouvelle perspective critique.
 - (-) Complexité technique : Le monkey-patching requiert de bien tester les flux asynchrones, validé par les 375 tests pytest.
+
+---
+
+## ADR-019 — Agent Portfolio Manager (Agrégation Pré-Ouverture)
+
+**Statut** : Accepte
+**Date** : 2026-04-28
+**Supersedes** : N/A
+**Contexte** :
+Dans l'architecture initiale, l'agent_pipeline exécutait des ordres séquentiels de paper-trading au fil de l'eau, même lorsque le marché était fermé (la nuit). De plus, si deux news nocturnes donnaient des signaux contradictoires (un achat à 23h et une vente à 11h), l'algorithme risquait de passer deux ordres opposés à l'ouverture du marché (15h30), payant le spread et s'annulant. L'exécution à 15h30 de 150 articles d'un coup créait également un goulot d'étranglement (Rate Limits).
+
+**Decision** :
+1. **Traitement asynchrone nocturne** : `run_paper_trading.py` lance désormais l'analyse multi-agents (`agent_pipeline.py`) en continu, même lorsque le marché est fermé, mais les ordres ne sont plus émis. Les signaux sont juste stockés en base (état PENDING).
+2. **Création du Portfolio Manager** : Un nouveau script `src/execution/portfolio_manager.py` se réveille une fois par jour entre 15h00 et 15h30.
+3. **Agrégation LLM Top-Down** : L'agent Portfolio Manager aspire tous les signaux de la nuit pour un ticker, et reçoit le contexte macro-économique (S&P 500, VIX, Régime). Le modèle Llama-3.1-70B (avec fallback asynchrone) arbitre le conflit et émet l'ordre net final.
+
+**Alternatives evaluees** :
+- **Agrégation mathématique simple** : Faire la somme des scores de conviction de la nuit. Écartée car elle ne permet pas de comprendre la nuance (ex: une énorme news macro l'emporte sur 3 petites news positives de revenus).
+- **Exécution directe** : Envoyer les ordres à Alpaca pendant la nuit pour les mettre en file d'attente. Écarté car Alpaca exécuterait tous les ordres contradictoires à l'ouverture l'un après l'autre.
+
+**Consequences** :
+- (+) Élimination du goulot d'étranglement de 15h30 (les analyses sont étalées sur les 15h de fermeture du marché).
+- (+) Réduction drastique des frais de transaction simulés (un seul ordre net envoyé).
+- (+) Prise de décision plus intelligente (intégration de la météo macro globale à la lecture de plusieurs news isolées).
