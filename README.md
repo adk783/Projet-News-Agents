@@ -102,6 +102,22 @@ cp .env.example .env
 # editer .env avec vos cles
 ```
 
+### Configuration
+
+Le projet repose sur 3 clés d'API obligatoires pour le système multi-agent, et plusieurs clés optionnelles pour l'exécution et l'audit.
+Commencez par dupliquer le fichier d'exemple :
+`cp .env.example .env`
+
+**Clés obligatoires (Modèles fondateurs) :**
+- **Groq** (`GROQ_API_KEY`) : Utilisé pour l'Agent Baissier. Inscription sur `console.groq.com`. **Gratuit** (quotas très généreux pour les tests).
+- **Cerebras** (`CEREBRAS_API_KEY`) : Utilisé pour l'Agent Haussier. Inscription sur `cloud.cerebras.ai`. **Gratuit** (quotas généreux).
+- **Mistral** (`MISTRAL_API_KEY`) : Utilisé pour l'Agent Neutre. Inscription sur `console.mistral.ai`. **Payant** mais abordable (prévoir un budget de $1 à $2 pour réaliser un cycle de test complet intensif).
+
+**Clés optionnelles (Audit et Données) :**
+- **NVIDIA NIM** (`NVIDIA_NIM_API_KEY`) : Modèle de fallback et d'audit avancé. Inscription sur `build.nvidia.com`. **Gratuit** (1000 crédits offerts).
+- **Finnhub** (`FINNHUB_API_KEY`) & **FRED** (`FRED_API_KEY`) : Calendriers macro. **Gratuit**.
+- **Alpaca** (`ALPACA_API_KEY`) : Pour le mode Paper-Trading en direct. **Gratuit** en mode sandbox.
+
 ### Verification
 
 ```bash
