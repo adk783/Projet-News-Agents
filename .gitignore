@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+build/
+dist/
+
+# Environments
+.env
+.venv
+venv/
+env/
+ENV/
+
+# IDEs / tooling local
+.vscode/
+.idea/
+.claude/
+*.swp
+
+# Streamlit : config.toml EST versionne (theme du dashboard), secrets/cache non
+.streamlit/secrets.toml
+.streamlit/cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Donnees runtime — regenerees a chaque execution du pipeline
+*.sqlite3
+*.db
+data/
+logs/
+*.log
+reports/
+pipeline_status.json
+
+# Evaluations — sorties scientifiques (peuvent etre relances)
+eval/eval_results/
+eval/lm_tasks/data/*.jsonl
+
+# Modeles entraines (ex: calibrator)
+models/

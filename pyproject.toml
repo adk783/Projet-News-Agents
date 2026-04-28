@@ -1,0 +1,211 @@
+# ============================================================================
+# Locus — News-Agents Project
+# Configuration centralisee : packaging, lint (ruff), types (mypy), tests (pytest).
+# Source unique de verite pour tous les outils de qualite.
+# ============================================================================
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# ----------------------------------------------------------------------------
+# Metadonnees du projet
+# ----------------------------------------------------------------------------
+[project]
+name = "locus-news-agents"
+version = "0.3.0"
+description = "Systeme expert finance multi-agents : debat LLM Bull/Bear/Neutre + couche d'evaluation Layer 7."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+authors = [{ name = "Zehad" }]
+keywords = ["finance", "llm", "multi-agent", "trading", "nlp", "backtesting"]
+
+# Dependances runtime (miroir de requirements.txt, source de verite ici).
+dependencies = [
+    "yfinance",
+    "newspaper3k",
+    "lxml_html_clean",
+    "trafilatura",
+    "curl-cffi>=0.15.0",
+    "langgraph",
+    "langchain",
+    "langchain-core",
+    "langchain-text-splitters",
+    "autogen-agentchat>=0.4",
+    "autogen-ext[openai]",
+    "openai",
+    "transformers",
+    "torch",
+    "pydantic",
+    "python-dotenv",
+    "streamlit",
+    "pandas",
+    "numpy",
+    "tqdm",
+    "chromadb>=0.5.0",
+    "sentence-transformers>=3.0.0",
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+# Dependances developpement (CI, tests, lint, types).
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.5.0",
+    "mypy>=1.10",
+    "types-requests",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "eval*", "scripts*"]
+exclude = ["tests*", "data*", "logs*", "reports*"]
+
+# ----------------------------------------------------------------------------
+# Ruff — lint + formattage (remplace flake8 + black + isort)
+# ----------------------------------------------------------------------------
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = [
+    "data",
+    "logs",
+    "reports",
+    "eval/eval_results",
+    "data/chroma_db",
+    "data/memory",
+    "data/harvest",
+]
+
+[tool.ruff.lint]
+# Selection volontairement conservatrice : on attrape les erreurs reelles
+# (E pycodestyle errors, F pyflakes, W warnings, I import-order, B bugbear)
+# sans imposer un style coercitif sur le code de recherche.
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes (variables non utilisees, imports manquants, etc.)
+    "W",   # pycodestyle warnings
+    "I",   # isort (ordre des imports)
+    "B",   # flake8-bugbear (bugs frequents)
+    "UP",  # pyupgrade (syntaxe Python moderne)
+]
+ignore = [
+    "E501",  # line too long (geree separement, line-length=120)
+    "E402",  # module-level import not at top of file (necessaire pour sys.path.insert)
+    "W605",  # invalid escape sequence (faux positifs sur regex)
+    "F401",  # unused import (les __init__.py exposent souvent des symboles)
+    "B008",  # function call in default argument (pattern legitime pour DI)
+    "UP006", # use `list` instead of `List` (compat py310)
+    "UP007", # use `X | Y` syntax (compat py310)
+    "UP035", # `typing.X` is deprecated (cf. UP006/UP007, decision identique)
+    "UP045", # use `X | None` (cf. UP007, syntax moderne pas adoptee massivement)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests : on tolere les fixtures complexes et les magic numbers.
+"tests/**/*.py" = ["B", "E712"]
+# Scripts : tolerance pour le print() (ce sont des CLIs).
+"scripts/**/*.py" = ["T201"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src", "eval", "scripts"]
+
+# ----------------------------------------------------------------------------
+# Mypy — verification de types statique
+# ----------------------------------------------------------------------------
+# Politique pragmatique : on commence strict sur les modules NEUFS et propres
+# (discovery, utils.logger, utils.llm_client) et tolerant ailleurs. L'idee est
+# de remonter la barre progressivement sans exiger 100% de types day-1.
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # tolerant par defaut
+ignore_missing_imports = true   # beaucoup de deps n'ont pas de stubs
+no_implicit_optional = true
+check_untyped_defs = true
+exclude = [
+    "data/",
+    "logs/",
+    "reports/",
+    "tests/",         # les tests ont leurs propres conventions
+    "eval/eval_results/",
+]
+
+# --- Modules audites en mode strict (qualite recente) ---
+[[tool.mypy.overrides]]
+module = [
+    "src.discovery.*",
+    "src.utils.logger",
+    "src.utils.llm_client",
+]
+disallow_untyped_defs = true
+warn_return_any = true
+
+# --- Modules tiers sans stubs : on ignore les imports manquants ---
+[[tool.mypy.overrides]]
+module = [
+    "yfinance.*",
+    "newspaper.*",
+    "trafilatura.*",
+    "chromadb.*",
+    "sentence_transformers.*",
+    "transformers.*",
+    "torch.*",
+    "autogen.*",
+    "autogen_agentchat.*",
+    "langgraph.*",
+    "langchain.*",
+    "streamlit.*",
+]
+ignore_missing_imports = true
+
+# ----------------------------------------------------------------------------
+# Pytest — config tests
+# ----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+pythonpath = ["."]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",                # resume des tests skipped/failed
+    "--tb=short",
+]
+markers = [
+    "slow: tests longs (> 1s, exclus par defaut en local)",
+    "integration: tests d'integration necessitant des cles API",
+    "live: tests qui appellent un LLM live (couteux)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:autogen.*",
+    "ignore::DeprecationWarning:pydantic.*",
+    "ignore::UserWarning:torch.*",
+]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/eval/*",
+    "*/scripts/*",
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+precision = 1
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

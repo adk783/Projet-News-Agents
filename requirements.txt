@@ -1,0 +1,50 @@
+# --- Collecte & scraping ---
+yfinance
+newspaper3k
+lxml_html_clean
+trafilatura
+curl-cffi>=0.15.0  # Fix CVE-2026-33752 (SSRF High/8.6) — dépendance transitive de yfinance
+
+# --- Agents & orchestration ---
+langgraph
+langchain
+langchain-core
+langchain-text-splitters
+
+
+# --- AutoGen group chat ---
+autogen-agentchat>=0.4
+autogen-ext[openai]
+
+# --- OpenAI-compatible SDK (agent_absa.py) ---
+openai
+
+# --- NLP / Filtrage FinBERT ---
+transformers
+torch
+
+# --- Données structurées ---
+pydantic
+
+# --- Variables d'environnement ---
+python-dotenv
+
+# --- Dashboard ---
+streamlit
+pandas
+
+# --- Évaluation de modèles (Custom Metrics Pipeline) ---
+# Utilisé par evaluate_custom.py pour benchmarker les LLMs sur financial_phrasebank
+tqdm
+
+# --- Couche Connaissance (Knowledge Layer — Locus v3) ---
+# RAG Vectoriel : ChromaDB + Sentence-Transformers
+# Ref: Lewis et al. (2020) NeurIPS, Wang et al. (2020) NeurIPS
+chromadb>=0.5.0
+sentence-transformers>=3.0.0   # all-MiniLM-L6-v2 (Wang et al. 2020, BEIR optimal)
+
+# HTTP pour SEC EDGAR API (gratuite, publique)
+requests>=2.31.0
+
+# FRED API (optionnel — fallback yfinance si clé absente)
+# fredapi  # pip install fredapi  — décommenter si FRED_API_KEY disponible dans .env
