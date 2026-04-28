@@ -222,21 +222,33 @@ _DEBATE_CONFIGS: dict = {
         "env_key": "GROQ_API_KEY",
         "family": "gpt-oss",
     },
+    "mistral_large": {
+        "model": "mistral-large-latest",
+        "base_url": "https://api.mistral.ai/v1",
+        "env_key": "MISTRAL_API_KEY",
+        "family": "mistral",
+    },
+    "nim_llama_3_1_70b": {
+        "model": "meta/llama-3.1-70b-instruct",
+        "base_url": "https://integrate.api.nvidia.com/v1",
+        "env_key": "NVIDIA_NIM_API_KEY",
+        "family": "meta-llama",
+    },
+    "cerebras_llama": {
+        "model": "llama3.1-8b",
+        "base_url": "https://api.cerebras.ai/v1",
+        "env_key": "CEREBRAS_API_KEY",
+        "family": "meta-llama",
+    },
 }
 
-
 # Mapping ROLE -> liste de providers a essayer (ordre de preference).
-# Si le 1er a une cle API valide, c'est celui utilise. Sinon fallback.
-# Permet d'activer la diversification NIM sans casser le pipeline existant.
+# Si le 1er echoue (ex: RateLimit), le systeme passe au 2e automatiquement.
 _ROLE_PREFERENCES: dict = {
-    # Bull -> NIM Kimi-K2 (Moonshot-trained, 16.8s bench live, raisonnement financier EXCELLENT)
-    "bull": ["nim_kimi", "cerebras", "groq"],
-    # Bear -> NIM Ministral-14B (Mistral-trained, 2.3s bench live, AIME=85)
-    "bear": ["groq_gpt_oss", "groq", "cerebras", "mistral"],
-    # Neutre -> NIM Qwen3-Next-80B (Alibaba-trained, 3.8s bench live)
-    "neutral": ["nim_qwen", "mistral", "groq"],
-    # Consensus -> Groq Llama-3.3-70B (Meta-trained, ~3-5s)
-    "consensus": ["consensus", "groq"],
+    "bull": ["nim_kimi", "cerebras_llama", "groq"],
+    "bear": ["groq_gpt_oss", "mistral_large", "cerebras_llama"],
+    "neutral": ["nim_qwen", "mistral_large", "groq"],
+    "consensus": ["consensus", "nim_llama_3_1_70b", "mistral_large"],
 }
 
 
@@ -254,20 +266,15 @@ def _get_model_client(provider_or_role: str) -> tuple[OpenAIChatCompletionClient
     else:
         chain = [provider_or_role]
 
-    # On essaie les providers dans l'ordre, premier avec cle API gagne
+    # On instancie tous les providers de la chaine qui ont une cle API
+    clients_chain = []
+    names_chain = []
     for candidate in chain:
         if candidate not in _DEBATE_CONFIGS:
             continue
         cfg = _DEBATE_CONFIGS[candidate]
         api_key = os.getenv(cfg["env_key"])
         if api_key:
-            logger.info(
-                "Client LLM : role=%s | provider=%s | model=%s | family=%s",
-                provider_or_role,
-                candidate,
-                cfg["model"],
-                cfg["family"],
-            )
             client = OpenAIChatCompletionClient(
                 model=cfg["model"],
                 base_url=cfg["base_url"],
@@ -280,7 +287,47 @@ def _get_model_client(provider_or_role: str) -> tuple[OpenAIChatCompletionClient
                     "family": cfg["family"],
                 },
             )
-            return client, f"{candidate} ({cfg['model']}, {cfg['family']})"
+            clients_chain.append(client)
+            names_chain.append(f"{candidate} ({cfg['model']}, {cfg['family']})")
+
+    if clients_chain:
+        primary_client = clients_chain[0]
+        primary_name = names_chain[0]
+        logger.info(f"Client LLM Primaire : role={provider_or_role} | {primary_name}")
+
+        # Si on a des fallbacks, on monkey-patch la methode create() pour gerer la bascule auto
+        if len(clients_chain) > 1:
+            async def resilient_create(*args, **kwargs):
+                last_err = None
+                for i, c in enumerate(clients_chain):
+                    try:
+                        if i > 0:
+                            logger.warning(f"[Fallback] Tentative de bascule sur {names_chain[i]}...")
+                        return await c.create(*args, **kwargs)
+                    except Exception as e:
+                        logger.error(f"[Fallback] Echec LLM {names_chain[i]} : {e}")
+                        last_err = e
+                raise last_err
+                
+            async def resilient_create_stream(*args, **kwargs):
+                last_err = None
+                for i, c in enumerate(clients_chain):
+                    try:
+                        if i > 0:
+                            logger.warning(f"[Fallback Stream] Tentative de bascule sur {names_chain[i]}...")
+                        generator = c.create_stream(*args, **kwargs)
+                        async for chunk in generator:
+                            yield chunk
+                        return
+                    except Exception as e:
+                        logger.error(f"[Fallback Stream] Echec LLM {names_chain[i]} : {e}")
+                        last_err = e
+                raise last_err
+
+            primary_client.create = resilient_create
+            primary_client.create_stream = resilient_create_stream
+
+        return primary_client, primary_name
 
     # Aucun provider de la chaine n'a de cle : on retombe sur le primary
     fallback_provider = _get_primary_provider()

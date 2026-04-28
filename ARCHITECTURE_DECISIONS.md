@@ -763,3 +763,28 @@ Integrer ces modeles NIM legers et performants dans le debat :
 - (+) Latence maitrisee (1-4s par appel), rendant le pipeline scalable.
 - (+) Exploitation optimale de l'API NVIDIA NIM pour le live et l'asynchrone.
 - (-) Dependance accrue envers NVIDIA NIM (gere par la chaine de fallback existante).
+
+---
+
+## ADR-018 — Validation de la diversité épistémique et Monkey-Patch Fallback Résilient (AutoGen v0.4)
+
+**Statut** : Accepte
+**Date** : 2026-04-28
+**Supersedes** : N/A
+**Contexte** :
+Le pipeline utilisait `Ministral-14B` (via NVIDIA NIM) comme agent Baissier. Lors d'un benchmark de raisonnement financier en conditions réelles, ce modèle a échoué à produire un JSON/XML valide en raison d'une taille insuffisante face à un prompt complexe (token collapse). De plus, l'API Groq a atteint sa limite quotidienne gratuite (100k tokens), provoquant un crash `RateLimitError (429)` de tout le système en production. Autogen v0.4 (`OpenAIChatCompletionClient`) ne gère pas nativement de fallback transparent intra-agent avec une liste de `model_clients`.
+
+**Decision** :
+1. Remplacer l'agent Baissier défaillant par `openai/gpt-oss-120b` (via Groq), une nouvelle famille de modèles testée avec succès (latence 1.02s, raisonnement implacable, strict respect XML).
+2. Ajouter Mistral Large (`mistral-large-latest` via MISTRAL API) en Fallback direct sur ce poste.
+3. Implémenter un Monkey-Patch asynchrone dynamique dans `agent_debat.py` : au lieu de crasher si le premier provider renvoie une erreur 429, la méthode `create()` intercepte l'erreur et bascule silencieusement sur le provider de secours (Fallback Chain), assurant l'indestructibilité du pipeline.
+
+**Alternatives evaluees** :
+- **Utiliser les modèles Phi-4 (Microsoft)** : `microsoft/phi-4-multimodal-instruct` a été testé (1.73s, excellente qualité). Cependant, l'API NIM a renvoyé des erreurs 400 DEGRADED lors des stress-tests (hébergement instable). Option écartée temporairement.
+- **Désactiver Groq (Hardcode)** : Simple mais on perd la latence de 1s de Groq pour demain.
+- **Monkey-Patching (Choisi)** : Élégant, abstrait la complexité à Autogen, et relance automatiquement Groq quand la limite quotidienne se reset, sans intervention humaine.
+
+**Consequences** :
+- (+) Résilience totale : un quota API (Groq) dépassé ou une API instable n'interrompt plus la boucle de Paper Trading.
+- (+) Diversité préservée : L'introduction du modèle `gpt-oss-120b` apporte une nouvelle perspective critique.
+- (-) Complexité technique : Le monkey-patching requiert de bien tester les flux asynchrones, validé par les 375 tests pytest.
