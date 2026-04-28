@@ -135,4 +135,4 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`n  -> Pipeline complet termine avec succes." -ForegroundColor Green
-Write-Host "  -> Pour visualiser les resultats : streamlit run src/dashboard/dashboard.py" -ForegroundColor Cyan
+Write-Host "  -> Pour visualiser les resultats : streamlit run dashboard/app.py" -ForegroundColor Cyan

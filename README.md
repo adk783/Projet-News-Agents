@@ -3,7 +3,7 @@
 > Generateur de signaux de trading **long/short event-driven** a partir d'actualites
 > financieres temps-reel, fonde sur un **debat multi-agent LLM** discipline par
 > des modules statistiques bayesiens et causaux, et evalue par une couche
-> d'audit scientifique de **17 metriques formelles**.
+> d'audit scientifique de **18 metriques formelles**.
 
 [![CI](https://img.shields.io/badge/CI-passing-brightgreen)](.github/workflows/test.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue)](pyproject.toml)
@@ -32,7 +32,7 @@ Trois problemes structurels :
   contradictoirement avant de produire un signal.
 - Une **couche statistique bayesienne** qui quantifie la variance epistemique
   vs aleatorique de l'agregat (Lakshminarayanan 2017).
-- Un **framework d'evaluation a 17 metriques formelles** (calibration, NLI
+- Un **framework d'evaluation a 18 metriques formelles** (calibration, NLI
   faithfulness, counterfactual invariance, abnormal returns Fama-French,
   Romano-Wolf stepdown).
 
@@ -122,11 +122,11 @@ Commencez par dupliquer le fichier d'exemple :
 
 ```bash
 # Suite de tests (375 tests, < 2 min sans LLM)
-pytest tests/ -v
+pytest -m "not live" tests/ -v
 
 # Lint + type check
 ruff check src/ tests/ eval/
-mypy src/discovery/ src/utils/logger.py src/utils/llm_client.py
+mypy .
 ```
 
 ---
@@ -240,7 +240,7 @@ ces fichiers — il les affiche.
 
 ## Framework d'evaluation (Layer 7)
 
-Le module `eval/run_eval.py` produit un **PDF analytique** avec 17 metriques :
+Le module `eval/run_eval.py` produit un **PDF analytique** avec 18 metriques :
 
 | # | Metrique | Module | Reference |
 |---|---|---|---|
