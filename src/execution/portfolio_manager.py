@@ -15,6 +15,7 @@ import os
 from typing import Dict, List
 
 from src.utils.llm_client import LLMClient
+from src.knowledge.macro_context import get_macro_context, format_macro_for_prompt
 from src.config import DRY_RUN
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,11 @@ Your analysts have tracked {ticker} overnight and produced the following trading
 {signals}
 
 Your job is to read all these conflicting or reinforcing signals, weigh their respective market impact, and make a FINAL executive trading decision for today's market open.
+Take into account the current macro-economic environment when making your decision:
+=== MACRO CONTEXT ===
+{macro_context}
+=====================
+
 If there is a strong "Vente" due to systemic/macro risks, it might override a minor "Achat" from an earnings beat, or vice-versa.
 
 You MUST reply with a strict XML block:
@@ -77,6 +83,10 @@ def run_portfolio_manager():
         
     llm = LLMClient.from_env()
     
+    logger.info("Récupération de la météo macro-économique...")
+    macro_snap = get_macro_context(force_refresh=False)
+    macro_text = format_macro_for_prompt(macro_snap)
+    
     for ticker, signals in signals_by_ticker.items():
         logger.info(f"Analyse des signaux pour {ticker} ({len(signals)} signaux en conflit/renfort)")
         
@@ -87,7 +97,7 @@ def run_portfolio_manager():
             signals_text += f"Titre : {s['title']}\n"
             signals_text += f"Argument : {s['argument_dominant']}\n\n"
             
-        prompt = PORTFOLIO_MANAGER_PROMPT.format(ticker=ticker, signals=signals_text)
+        prompt = PORTFOLIO_MANAGER_PROMPT.format(ticker=ticker, signals=signals_text, macro_context=macro_text)
         
         try:
             # On utilise les modèles les plus intelligents (70B+) pour cette tâche d'arbitrage
