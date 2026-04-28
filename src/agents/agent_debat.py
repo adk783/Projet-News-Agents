@@ -135,13 +135,15 @@ class SharedScratchpad:
 # Avant : Bull=Cerebras-Llama, Bear=Groq-Llama, Neutre=Mistral-Small,
 #         Consensus=Groq-Llama. Soit 3 modeles Meta-Llama + 1 Mistral.
 #
-# Apres (Phase finale) : Bull=NIM-Nemotron-Mini-4B (NVIDIA), Bear=NIM-Ministral-14B (Mistral),
+# Apres (Phase finale) : Bull=NIM-Kimi-K2 (Moonshot), Bear=NIM-Ministral-14B (Mistral),
 #         Neutre=NIM-Qwen3-Next-80B (Alibaba), Consensus=Groq-Llama (Meta).
-#         Soit 4 familles d'entrainement (NVIDIA + Mistral + Alibaba + Meta).
+#         Soit 4 familles d'entrainement (Moonshot + Mistral + Alibaba + Meta).
 #
-# Justification empirique : bench live
-# Nemotron-Mini-4B (1.0s, IFEval=88.0), Ministral-14B (2.3s, AIME=85),
-# Qwen3-Next-80B (3.8s, IFEval=87.6, MMLU-Pro=80.6).
+# Justification empirique : bench live (2026-04-28)
+# Kimi-K2 (16.8s, raisonnement financier EXCELLENT: DCF, PEG, ROIC),
+# Ministral-14B (6.3s, argumentation baissiere chirurgicale),
+# Qwen3-Next-80B (7.3s, synthese equilibree, IFEval=87.6, MMLU-Pro=80.6).
+# Note : Nemotron-Mini-4B retire (context limit 4096 tokens, crashait sur tous les articles).
 #
 # La diversite epistemique theoriquement reduit la correlation des erreurs
 # entre agents (Liang et al. 2024 "Encouraging Divergent Thinking in LLMs").
@@ -206,12 +208,13 @@ _DEBATE_CONFIGS: dict = {
         "env_key": "NVIDIA_NIM_API_KEY",
         "family": "qwen-alibaba",
     },
-    "nim_nemotron": {
-        # Alternative ultra-rapide (1.2s) si on veut de la latence -- NVIDIA-trained
-        "model": "nvidia/nemotron-mini-4b-instruct",
+    "nim_kimi": {
+        # Bull -> Kimi-K2 (Moonshot-trained, 16.8s bench live, raisonnement financier EXCELLENT)
+        # Remplace Nemotron-Mini-4B (context limit 4096 → crash systematique)
+        "model": "moonshotai/kimi-k2-instruct",
         "base_url": "https://integrate.api.nvidia.com/v1",
         "env_key": "NVIDIA_NIM_API_KEY",
-        "family": "nvidia-nemotron",
+        "family": "moonshot",
     },
     "nim_ministral": {
         # Alternative Mistral (2.6s, 110w) si on veut Mistral plus puissant
@@ -227,8 +230,8 @@ _DEBATE_CONFIGS: dict = {
 # Si le 1er a une cle API valide, c'est celui utilise. Sinon fallback.
 # Permet d'activer la diversification NIM sans casser le pipeline existant.
 _ROLE_PREFERENCES: dict = {
-    # Bull -> NIM Nemotron-Mini-4B (NVIDIA-trained, 1.0s bench live, IFEval=88.0)
-    "bull": ["nim_nemotron", "cerebras", "groq"],
+    # Bull -> NIM Kimi-K2 (Moonshot-trained, 16.8s bench live, raisonnement financier EXCELLENT)
+    "bull": ["nim_kimi", "cerebras", "groq"],
     # Bear -> NIM Ministral-14B (Mistral-trained, 2.3s bench live, AIME=85)
     "bear": ["nim_ministral", "groq", "cerebras", "mistral"],
     # Neutre -> NIM Qwen3-Next-80B (Alibaba-trained, 3.8s bench live)
