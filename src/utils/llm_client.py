@@ -289,6 +289,16 @@ class LLMClient:
                 content = (resp_raw.choices[0].message.content or "").strip()
                 n_total_attempts += n_tries
                 latency = time.monotonic() - t0
+
+                # ---- Cost tracking centralisé ----
+                # Tous les appels LLM du pipeline passent ici (ABSA, filtrage,
+                # mémoire, compresseur, auditor, consensus HQ).
+                try:
+                    from src.utils.llm_cost_tracker import track_from_openai_usage
+                    track_from_openai_usage(effective_model, getattr(resp_raw, "usage", None))
+                except Exception:
+                    pass  # Non bloquant — le tracking est best-effort
+
                 log.info(
                     "llm_complete_ok",
                     extra={
