@@ -35,7 +35,7 @@ from pathlib import Path
 # Configuration
 # ----------------------------------------------------------------------------
 os.environ.setdefault("DRY_RUN", "1")
-os.environ.setdefault("LLM_DAILY_BUDGET_USD", "5.0")
+os.environ.setdefault("LLM_DAILY_BUDGET_USD", "0")
 
 INTERVAL_MINUTES = int(os.environ.get("LOCUS_INTERVAL_MIN", "30"))
 TOP_N            = int(os.environ.get("LOCUS_TOP_N", "10"))
