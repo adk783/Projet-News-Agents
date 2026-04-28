@@ -262,40 +262,34 @@ def main() -> None:
         tickers = select_tickers()
         tickers_str = " ".join(tickers)
 
-        if _is_market_open(now_dt):
+        is_open = _is_market_open(now_dt)
+        if is_open:
             print(f"[{now_str}] Marche OUVERT — execution complete")
-            print(f"[{now_str}] 1/2 Recuperation news pour {len(tickers)} tickers")
-            try:
-                subprocess.run(
-                    f"python -m src.pipelines.news_pipeline --tickers {tickers_str}",
-                    shell=True, check=True,
-                )
-            except subprocess.CalledProcessError:
-                logger.warning("Erreur news_pipeline — on continue")
-
-            # Le timer de 30 min demarre ICI (apres les news, pas apres les agents).
-            # L'analyse multi-agents peut prendre 15-20 min sur un gros batch,
-            # mais les news doivent rester fraiches → on recolte toutes les 30 min.
-            cycle_start = time.monotonic()
-
-            print(f"[{now_str}] 2/2 Analyse multi-agents")
-            try:
-                subprocess.run(
-                    "python -m src.pipelines.agent_pipeline",
-                    shell=True, check=True,
-                )
-            except subprocess.CalledProcessError:
-                logger.warning("Erreur agent_pipeline — on continue")
         else:
-            print(f"[{now_str}] Marche FERME — accumulation news seule")
-            try:
-                subprocess.run(
-                    f"python -m src.pipelines.news_pipeline --tickers {tickers_str}",
-                    shell=True, check=True,
-                )
-            except subprocess.CalledProcessError:
-                pass
-            cycle_start = time.monotonic()
+            print(f"[{now_str}] Marche FERME — analyse anticipative (ordres en file d'attente)")
+
+        print(f"[{now_str}] 1/2 Recuperation news pour {len(tickers)} tickers")
+        try:
+            subprocess.run(
+                f"python -m src.pipelines.news_pipeline --tickers {tickers_str}",
+                shell=True, check=True,
+            )
+        except subprocess.CalledProcessError:
+            logger.warning("Erreur news_pipeline — on continue")
+
+        # Le timer de 30 min demarre ICI (apres les news, pas apres les agents).
+        # L'analyse multi-agents peut prendre 15-20 min sur un gros batch,
+        # mais les news doivent rester fraiches → on recolte toutes les 30 min.
+        cycle_start = time.monotonic()
+
+        print(f"[{now_str}] 2/2 Analyse multi-agents")
+        try:
+            subprocess.run(
+                "python -m src.pipelines.agent_pipeline",
+                shell=True, check=True,
+            )
+        except subprocess.CalledProcessError:
+            logger.warning("Erreur agent_pipeline — on continue")
 
         # Routines hors-cycle
         _maybe_run_nightly_calibration(now_dt)
