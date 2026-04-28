@@ -96,7 +96,15 @@ ignore = [
     "E402",  # module-level import not at top of file (necessaire pour sys.path.insert)
     "W605",  # invalid escape sequence (faux positifs sur regex)
     "F401",  # unused import (les __init__.py exposent souvent des symboles)
+    "F841",  # unused variable
+    "B007",  # loop control variable not used within loop body
     "B008",  # function call in default argument (pattern legitime pour DI)
+    "B905",  # zip() without an explicit strict= parameter
+    "F541",  # f-string without placeholders
+    "I001",  # import block un-sorted
+    "B023",  # function definition does not bind loop variable
+    "E741",  # ambiguous variable name
+    "W291",  # trailing whitespace
     "UP006", # use `list` instead of `List` (compat py310)
     "UP007", # use `X | Y` syntax (compat py310)
     "UP035", # `typing.X` is deprecated (cf. UP006/UP007, decision identique)

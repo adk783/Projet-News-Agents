@@ -135,12 +135,16 @@ mypy .
 
 ### Mode 1 — Live (un cycle a la demande)
 
+> [!IMPORTANT]
+> Lors d'un tout premier lancement (clone vierge), il est indispensable d'exécuter l'étape de collecte (`news_pipeline`) avant l'analyse (`agent_pipeline`). Cela permet d'initialiser proprement le schéma de la base de données locale.
+
 ```bash
-# Pipeline complet : collecte news + debat + signal
+# Utilisateurs Windows (PowerShell) : Pipeline complet
 ./run.ps1 -Tickers AAPL MSFT GOOGL
 
-# Ou en Python direct
-python -m src.pipelines.agent_pipeline
+# Utilisateurs Mac / Linux : Commandes équivalentes
+python -m src.pipelines.news_pipeline --tickers AAPL MSFT GOOGL
+python -m src.pipelines.agent_pipeline --tickers AAPL MSFT GOOGL
 ```
 
 Sortie : table `articles` dans `data/news_database.db` avec colonnes
