@@ -273,6 +273,11 @@ def main() -> None:
             except subprocess.CalledProcessError:
                 logger.warning("Erreur news_pipeline — on continue")
 
+            # Le timer de 30 min demarre ICI (apres les news, pas apres les agents).
+            # L'analyse multi-agents peut prendre 15-20 min sur un gros batch,
+            # mais les news doivent rester fraiches → on recolte toutes les 30 min.
+            cycle_start = time.monotonic()
+
             print(f"[{now_str}] 2/2 Analyse multi-agents")
             try:
                 subprocess.run(
@@ -290,14 +295,21 @@ def main() -> None:
                 )
             except subprocess.CalledProcessError:
                 pass
+            cycle_start = time.monotonic()
 
         # Routines hors-cycle
         _maybe_run_nightly_calibration(now_dt)
         _maybe_run_weekly_audit(now_dt)
 
-        print(f"\nCycle termine. Prochain dans {INTERVAL_MINUTES} min. (Ctrl+C pour arreter)")
+        # Sleep = 30 min moins le temps deja ecoule depuis la fin des news.
+        elapsed = time.monotonic() - cycle_start
+        remaining = max(0, INTERVAL_MINUTES * 60 - elapsed)
+        if remaining > 0:
+            print(f"\nCycle termine. Prochain dans {remaining / 60:.0f} min. (Ctrl+C pour arreter)")
+        else:
+            print(f"\nCycle termine. Prochain cycle immediatement (agent a pris {elapsed / 60:.0f} min).")
         try:
-            time.sleep(INTERVAL_MINUTES * 60)
+            time.sleep(remaining)
         except KeyboardInterrupt:
             print("\nArret manuel demande.")
             break

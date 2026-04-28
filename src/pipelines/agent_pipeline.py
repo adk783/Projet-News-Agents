@@ -432,9 +432,9 @@ def run_agent_pipeline(
             # ----------------------------------------------------------------
             article_date_str = str(row["date"]) if "date" in row.keys() else ""
             sb_report = check_survivor_bias(ticker, article_date_str)
-            if sb_report.is_failed_ticker and sb_report.needs_warning:
+            if sb_report.is_potentially_delisted and sb_report.bias_risk != "FAIBLE":
                 logger.warning(
-                    "[TemporalFence] Ticker %s marque comme 'failed' : %s", ticker, sb_report.warning_message
+                    "[TemporalFence] Ticker %s marque comme 'failed' : %s", ticker, "; ".join(sb_report.notes)
                 )
                 # On continue mais on marque l'article pour audit
             # ----------------------------------------------------------------
