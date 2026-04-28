@@ -240,14 +240,27 @@ def print_header() -> None:
 
 
 def _is_market_open(now_dt: datetime) -> bool:
-    """Heures de bourse Paris : Lun-Ven 15h30 a 22h00."""
+    """Heures de bourse Paris : Lun-Ven 15h30 à 22h00."""
     if now_dt.weekday() >= 5:
         return False
     if now_dt.hour < 15 or now_dt.hour >= 22:
         return False
+    # Entre 15h00 et 15h30, c'est techniquement fermé mais on prépare l'ouverture
     if now_dt.hour == 15 and now_dt.minute < 30:
         return False
     return True
+
+_LAST_PM_RUN_DATE = None
+
+def _maybe_run_portfolio_manager(now_dt: datetime):
+    global _LAST_PM_RUN_DATE
+    # Exécuté entre 15h00 et 15h30 pour compiler les ordres avant l'ouverture
+    if now_dt.weekday() < 5 and now_dt.hour == 15 and now_dt.minute <= 30:
+        today_str = now_dt.strftime("%Y-%m-%d")
+        if _LAST_PM_RUN_DATE != today_str:
+            print(f"[{now_dt.strftime('%H:%M:%S')}] Exécution du Portfolio Manager (Agrégation Pré-Ouverture)")
+            subprocess.run("python -m src.execution.portfolio_manager", shell=True)
+            _LAST_PM_RUN_DATE = today_str
 
 
 def main() -> None:
@@ -284,15 +297,19 @@ def main() -> None:
 
         print(f"[{now_str}] 2/2 Analyse multi-agents")
         try:
+            env = os.environ.copy()
+            if not is_open:
+                env["MARKET_CLOSED"] = "1"
             subprocess.run(
                 "python -m src.pipelines.agent_pipeline",
-                shell=True, check=True,
+                shell=True, check=True, env=env
             )
         except subprocess.CalledProcessError:
             logger.warning("Erreur agent_pipeline — on continue")
 
         # Routines hors-cycle
         _maybe_run_nightly_calibration(now_dt)
+        _maybe_run_portfolio_manager(now_dt)
         _maybe_run_weekly_audit(now_dt)
 
         # Sleep = 30 min moins le temps deja ecoule depuis la fin des news.
