@@ -90,10 +90,20 @@ ALMGREN_CHRISS_AUTO_TRIGGER_ADV_PCT = float(
 # audit de coût. Utilisé uniquement pour l'estimation de budget, pas pour le
 # routing live (le routing est dans agent_debat.py).
 LLM_PRICING_USD_PER_1M_TOKENS = {
+    # --- Groq / Cerebras (ABSA, Consensus) ---
     "llama-3.1-8b-instant": 0.05,  # Cerebras free-tier → $0.05 en payant
     "llama-4-scout-17b": 0.11,
+    "meta-llama/llama-4-scout-17b-16e-instruct": 0.11,  # alias Groq
     "mistral-small-latest": 0.20,
-    "llama-3.3-70b-versatile": 0.59,
+    "llama-3.3-70b-versatile": 0.59,  # Consensus
+    # --- NVIDIA NIM (Débat multi-agent) ---
+    "moonshotai/kimi-k2-instruct": 0.40,      # Bull — Moonshot (prix estimé NIM)
+    "mistralai/ministral-14b-instruct-2512": 0.20,  # Bear — Mistral via NIM
+    "qwen/qwen3-next-80b-a3b-instruct": 0.80,  # Neutre — Qwen via NIM
+    "nvidia/nemotron-mini-4b-instruct": 0.10,   # Legacy (retiré, gardé pour historique)
+    # --- Modèles auxiliaires ---
+    "mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis": 0.0,  # Local FinBERT
+    "sentence-transformers/all-MiniLM-L6-v2": 0.0,  # Local embeddings
 }
 
 # ---------------------------------------------------------------------------
@@ -131,7 +141,7 @@ VIX_KILL_SWITCH_THRESHOLD = float(os.getenv("VIX_KILL_SWITCH_THRESHOLD", "45.0")
 # ---------------------------------------------------------------------------
 # Budget quotidien en USD. Si dépassé, le pipeline lève BudgetExceededError.
 # Mis à 0 pour désactiver le garde-fou (dev).
-LLM_DAILY_BUDGET_USD = float(os.getenv("LLM_DAILY_BUDGET_USD", "5.0"))
+LLM_DAILY_BUDGET_USD = float(os.getenv("LLM_DAILY_BUDGET_USD", "0"))  # 0 = pas de limite (APIs gratuites)
 LLM_COST_LOG_DIR = os.getenv("LLM_COST_LOG_DIR", "reports/llm_cost_daily")
 
 # ---------------------------------------------------------------------------

@@ -514,13 +514,13 @@ async def _run_debate(texte_article: str, ticker: str, contexte_marche: dict, ab
       Résultat : décision de meilleure qualité, coût en tokens réduit.
 
     Attribution des modèles (Phase finale, ADR-017 : diversite epistemique) :
-      - Haussier  → NIM Nemotron-Mini-4B (NVIDIA) [fallback : Cerebras Llama-3.1-8B]
-      - Baissier  → NIM Ministral-14B (Mistral)   [fallback : Groq Llama-4-Scout-17B]
-      - Neutre    → NIM Qwen3-Next-80B (Alibaba)  [fallback : Mistral-Small]
-      - Consensus → Groq Llama-3.3-70B (Meta)     [inchange]
+      - Haussier  → NIM Kimi-K2 (Moonshot)        [fallback : Cerebras Llama-3.1-8B]
+      - Baissier  → NIM Ministral-14B (Mistral)    [fallback : Groq Llama-4-Scout-17B]
+      - Neutre    → NIM Qwen3-Next-80B (Alibaba)   [fallback : Mistral-Small]
+      - Consensus → Groq Llama-3.3-70B (Meta)      [inchange]
 
     Justification : 4 familles d'entrainement RLHF distinctes
-    (NVIDIA + Mistral + Alibaba + Meta) au lieu de 2 (Meta + Mistral).
+    (Moonshot + Mistral + Alibaba + Meta) au lieu de 2 (Meta + Mistral).
     Reduit la correlation des erreurs entre agents (Liang et al. 2024).
     Si NVIDIA_NIM_API_KEY absent, fallback automatique sur Cerebras/Mistral.
     """
@@ -737,23 +737,42 @@ async def _run_debate(texte_article: str, ticker: str, contexte_marche: dict, ab
     logger.info("[Consensus] Réponse brute: %s", consensus_text[:200])
 
     # ------------------------------------------------------------------
-    # Tracking coût LLM (débat + consensus) — autogen n'expose pas toujours
+    # Tracking coût LLM — chaque agent est tracké séparément pour estimer
+    # le coût réel si les APIs étaient payantes. Autogen n'expose pas toujours
     # usage.prompt_tokens ; on estime à 4 chars/token (règle de pouce GPT).
-    # Les 4 LLMs parlent en moyenne ~1500 chars par tour × 3 tours + consensus
-    # long (~4000 chars). On utilise la taille des messages comme proxy.
     # ------------------------------------------------------------------
     try:
         from src.utils.llm_cost_tracker import track_llm_call
 
-        debate_chars = sum(len(getattr(m, "content", "") or "") for m in (consensus_result.messages or []))
-        # Débat en amont : on estime grossièrement via scratchpad + prompts
-        debate_chars += len(scratchpad.to_xml()) + 3 * 1500  # 3 agents × 1 tour moyen
-        est_tokens = max(1, debate_chars // 4)
-        # On facture ~60% prompt / 40% completion (heuristique OpenAI typique)
+        # Résolution des noms de modèles depuis les configs actives
+        def _resolve_model(role: str) -> str:
+            for p in _ROLE_PREFERENCES.get(role, []):
+                cfg = _DEBATE_CONFIGS.get(p)
+                if cfg and os.getenv(cfg["env_key"]):
+                    return cfg["model"]
+            return "unknown"
+
+        debate_models = [_resolve_model(r) for r in ("bull", "bear", "neutral")]
+
+        # Estimation tokens par agent depuis le scratchpad
+        scratchpad_xml = scratchpad.to_xml()
+        consensus_chars = sum(len(getattr(m, "content", "") or "") for m in (consensus_result.messages or []))
+
+        # Chaque agent de débat : prompt (~2000 chars) + réponse (~1500 chars) × 3 tours
+        for agent_model in debate_models:
+            agent_est_tokens = max(1, (2000 + 1500) * 3 // 4)  # ~2625 tokens/agent
+            track_llm_call(
+                model=agent_model,
+                prompt_tokens=int(agent_est_tokens * 0.6),
+                completion_tokens=int(agent_est_tokens * 0.4),
+            )
+
+        # Consensus : reçoit tout le scratchpad + produit la décision
+        consensus_est_tokens = max(1, (len(scratchpad_xml) + consensus_chars) // 4)
         track_llm_call(
-            model="llama-3.3-70b-versatile",  # consensus = modèle le plus cher
-            prompt_tokens=int(est_tokens * 0.6),
-            completion_tokens=int(est_tokens * 0.4),
+            model="llama-3.3-70b-versatile",
+            prompt_tokens=int(consensus_est_tokens * 0.6),
+            completion_tokens=int(consensus_est_tokens * 0.4),
         )
     except Exception as _exc:
         logger.debug("[CostTracker] debate estimate failed: %s", _exc)
