@@ -1,0 +1,344 @@
+{
+  "_meta": {
+    "description": "Benchmark manuel — 25 articles financiers avec labels de référence (Option B).",
+    "version": "1.0",
+    "created": "2026-04-13",
+    "label_methodology": "Labels assignés par l'auteur sur la base du consensus d'analystes et du mouvement réel du cours dans les 5 jours suivants la publication de l'article.",
+    "signal_definitions": {
+      "Achat":  "Hausse > +1.5% attendue dans les 5j OU consensus analyste positif clair",
+      "Vente":  "Baisse > -1.5% attendue dans les 5j OU consensus analyste négatif clair",
+      "Neutre": "Signal ambigu, mouvement < 1.5%, ou article insuffisamment informatif"
+    },
+    "filtrage_definitions": {
+      "pertinent":  "Article impactant directement la valorisation du titre (résultats, guidance, M&A, produit clé)",
+      "hors_scope": "Article trop générique, ETF, macro-économique sans lien direct, secteur < 10% du CA"
+    }
+  },
+  "articles": [
+    {
+      "id": "aapl_001",
+      "ticker": "AAPL",
+      "date": "2024-02-01",
+      "title": "Apple Q1 FY2024 Results: Revenue $119.6B, EPS $2.18, beats estimates",
+      "content": "Apple Inc. reported first-quarter fiscal 2024 results Thursday, posting revenue of $119.6 billion and earnings per share of $2.18, both beating Wall Street estimates. Services revenue hit a record $23.1 billion, up 11% year over year. The company also announced an expanded $90 billion share buyback program. CEO Tim Cook said iPhone 15 demand remains strong. However, China revenue fell 13% due to local competition and regulatory headwinds.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Achat",
+        "key_aspects": ["earnings", "revenue", "guidance"],
+        "rationale": "EPS beat + record services + buyback expansion outweigh China weakness. Stock +2.8% next 5d."
+      }
+    },
+    {
+      "id": "aapl_002",
+      "ticker": "AAPL",
+      "date": "2024-09-10",
+      "title": "Apple iPhone 16 launched: no major AI differentiator, analysts cautious",
+      "content": "Apple unveiled the iPhone 16 lineup Monday at its Glowtime event. The new models feature the A18 chip and hardware AI integration branded Apple Intelligence. However, most AI features will not be available at launch and will roll out progressively through iOS updates. Analysts at Morgan Stanley and JPMorgan noted the lack of immediate differentiators versus iPhone 15. Pre-orders are in line with prior year. The market consensus price target was not revised.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Neutre",
+        "key_aspects": ["product_launch", "guidance"],
+        "rationale": "Product launch without AI differentiation = muted demand signal. Stock +0.3% next 5d."
+      }
+    },
+    {
+      "id": "aapl_003",
+      "ticker": "AAPL",
+      "date": "2024-05-02",
+      "title": "Apple reports Q2 revenue decline of 4.3% year-over-year, guidance below consensus",
+      "content": "Apple posted Q2 fiscal 2024 revenue of $90.8 billion, a 4.3% decline year over year, missing analyst consensus of $92.9 billion. iPhone revenue dropped 10% in Greater China. CEO Tim Cook's guidance for Q3 pointed to low single-digit growth, below the 5% expected by analysts. The company repurchased $23.5 billion in shares during the quarter, providing some support. However, the gross margin expansion to 46.6% was a positive surprise.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Vente",
+        "key_aspects": ["revenue", "guidance", "macro_exposure"],
+        "rationale": "Revenue miss + weak China + guidance below consensus. Stock -2.1% next 5d."
+      }
+    },
+    {
+      "id": "msft_001",
+      "ticker": "MSFT",
+      "date": "2024-01-30",
+      "title": "Microsoft Q2 FY2024: Azure grows 28%, beats on all metrics, raises guidance",
+      "content": "Microsoft delivered another strong quarter, reporting Q2 FY2024 revenue of $62 billion (+18% YoY) with Azure cloud growing 28%, ahead of the 26% consensus estimate. EPS of $2.93 beat the $2.78 estimate. The company raised FY2024 guidance across all segments. CEO Satya Nadella highlighted AI Copilot monetization as a significant incremental revenue driver beginning Q3. Operating margins expanded 200bps to 44%.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Achat",
+        "key_aspects": ["earnings", "revenue", "guidance", "product_launch"],
+        "rationale": "Beat on all metrics + Azure acceleration + guidance raise = clear bullish. Stock +2.7% next 5d."
+      }
+    },
+    {
+      "id": "msft_002",
+      "ticker": "MSFT",
+      "date": "2024-04-25",
+      "title": "Microsoft Azure growth slows to 31% from 28%, AI demand exceeds infrastructure capacity",
+      "content": "Microsoft reported Q3 FY2024 results with Azure growing 31%, but management noted that AI demand is outpacing the company's ability to build data centers fast enough. CFO Amy Hood warned that this capacity constraint will cap Azure growth in the near term, with sequential acceleration expected only in H2 FY2025 as new data centers come online. Revenue of $61.9 billion was in line with estimates. EPS of $2.94 beat by $0.07.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Neutre",
+        "key_aspects": ["revenue", "guidance", "earnings"],
+        "rationale": "EPS beat but Azure capacity warning creates uncertainty. Mixed signals = Neutre. Stock -1.1% next 5d."
+      }
+    },
+    {
+      "id": "tsla_001",
+      "ticker": "TSLA",
+      "date": "2024-01-24",
+      "title": "Tesla Q4 2023: deliveries miss expectations, warns of 'notably lower' 2024 growth",
+      "content": "Tesla reported Q4 2023 deliveries of 484,507 vehicles, missing the 483,000 consensus estimate by a thin margin, but revenue of $25.2 billion missed by $600 million. More critically, CEO Elon Musk warned on the earnings call that volume growth in 2024 could be 'notably lower than in 2023', citing the transition to the next-generation vehicle platform. Operating margin fell to 8.2% from 16% a year ago. The stock fell 12% in after-hours trading.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Vente",
+        "key_aspects": ["revenue", "guidance", "earnings"],
+        "rationale": "Revenue miss + explicit warning of lower growth from CEO + margin collapse. Stock -12.1% next 5d."
+      }
+    },
+    {
+      "id": "tsla_002",
+      "ticker": "TSLA",
+      "date": "2024-10-24",
+      "title": "Tesla Q3 2024: EPS $0.72 beats $0.60 estimate, Cybertruck drives automotive gross margin recovery",
+      "content": "Tesla beat Q3 2024 expectations meaningfully, posting EPS of $0.72 versus the consensus $0.60. Automotive gross margin recovered to 17.1% from a low of 14.6% in Q2, driven by Cybertruck positive gross margin for the first time and cost reductions. Revenue of $25.2 billion slightly missed revenue estimates but profitability surprise dominated. Full Self Driving adoption increased 40% QoQ. Musk provided optimistic commentary on Robotaxi timeline for 2025.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Achat",
+        "key_aspects": ["earnings", "product_launch", "guidance"],
+        "rationale": "Large EPS beat + margin recovery + Robotaxi catalyst. Stock +22% next 5d."
+      }
+    },
+    {
+      "id": "amzn_001",
+      "ticker": "AMZN",
+      "date": "2024-02-01",
+      "title": "Amazon Q4 2023: AWS +13%, operating income triples YoY, raises Q1 guidance above consensus",
+      "content": "Amazon reported Q4 2023 results with AWS revenue growing 13% year-over-year to $24.2 billion, accelerating from 12% in Q3. Total operating income reached $13.2 billion, nearly tripling from $4.8 billion a year ago, driven by efficiency gains across retail and cloud. Q1 2024 guidance of $138-143 billion revenue was above the $134 billion consensus. CFO Brian Olsavsky credited AI workloads for AWS acceleration. Ad revenue grew 27% to $14.7 billion.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Achat",
+        "key_aspects": ["earnings", "revenue", "guidance"],
+        "rationale": "AWS acceleration + profit surge + guidance beat. Stock +7.9% next 5d."
+      }
+    },
+    {
+      "id": "amzn_002",
+      "ticker": "AMZN",
+      "date": "2024-08-01",
+      "title": "Amazon Q2 2024 misses revenue estimate, AWS growth strong but retail margins disappoint",
+      "content": "Amazon Q2 2024 revenue of $148 billion missed the $148.6 billion consensus by a small margin. AWS maintained 19% growth but retail operating margins came in below expectations at 3.9% versus the 4.7% expected. Management Q3 guidance of $154-158.5 billion was also below the $158.4 billion high estimate. CFO noted increased shipping costs due to expanded same-day delivery investment. The earnings miss drove a 9% stock drop in after-hours.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Vente",
+        "key_aspects": ["revenue", "guidance", "earnings"],
+        "rationale": "Revenue miss + weak guidance + margin disappointment. Stock -8.8% next 5d."
+      }
+    },
+    {
+      "id": "aapl_004",
+      "ticker": "AAPL",
+      "date": "2024-03-21",
+      "title": "Apple fined 1.8 billion euros by EU antitrust regulator for App Store music streaming rules",
+      "content": "The European Commission fined Apple 1.84 billion euros on Wednesday for abusing its dominant position over music streaming app developers through App Store restrictions. The fine stems from a 2019 complaint by Spotify. Apple said it would appeal. This is the first fine under the EU's Digital Markets Act framework. Analysts estimate the fine represents less than 0.2% of Apple's annual revenue and cash holdings of $162 billion make it immaterial to the balance sheet.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Neutre",
+        "key_aspects": ["macro_exposure"],
+        "rationale": "EU fine immaterial to financials ($1.84B vs $162B cash). Regulatory risk noted but not actionable. Stock -0.2% next 5d."
+      }
+    },
+    {
+      "id": "aapl_005",
+      "ticker": "AAPL",
+      "date": "2024-06-10",
+      "title": "Apple announces Apple Intelligence AI at WWDC 2024, opens ChatGPT integration",
+      "content": "Apple unveiled Apple Intelligence at WWDC 2024, a suite of AI features deeply integrated into iOS 18, iPadOS 18, and macOS Sequoia. Key features include priority inbox management, AI image generation (Image Playground), and a new Siri powered by ChatGPT integration via an OpenAI partnership. Apple Intelligence will require iPhone 15 Pro or M-series Macs. This creates a potential upgrade supercycle. Analysts at Wedbush raised their price target from $216 to $275, calling it an 'AI iPhone moment'.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Achat",
+        "key_aspects": ["product_launch", "guidance"],
+        "rationale": "AI integration creates upgrade cycle catalyst + analyst upgrades. Stock +7.3% next 5d."
+      }
+    },
+    {
+      "id": "msft_003",
+      "ticker": "MSFT",
+      "date": "2024-07-30",
+      "title": "Microsoft FY2024 Q4: miss on Azure despite 29% growth, cloud margins under pressure",
+      "content": "Microsoft Q4 FY2024 posted Azure growth of 29%, below the 31% consensus estimate and marking a deceleration from prior quarters. Total cloud revenue grew 19% to $36.8 billion. Operating margins compressed 100bps as AI infrastructure capex accelerated. Management guided Q1 FY2025 Azure growth of 28-29%, again below the 33% Wall Street expected. Total revenue of $64.7 billion was in line. EPS of $2.95 beat by $0.06. Stock fell 7% in after-hours.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Vente",
+        "key_aspects": ["revenue", "guidance", "earnings"],
+        "rationale": "Azure deceleration vs expectations + weak guidance below consensus. Stock -7.1% next 5d."
+      }
+    },
+    {
+      "id": "tsla_003",
+      "ticker": "TSLA",
+      "date": "2024-07-02",
+      "title": "Tesla Q2 2024 deliveries beat estimates: 443,956 vehicles vs 439,302 expected",
+      "content": "Tesla delivered 443,956 vehicles in Q2 2024, beating analyst consensus of 439,302 and ending a two-quarter streak of declines. Production reached 410,831 vehicles. The beat was driven by end-of-quarter incentives and lease financing options in China. However, CEO Musk cautioned that the delivery beat was partly due to pulling demand forward with price cuts and that the business remains in a 'transition period'. Full year 2024 delivery growth will likely be lower than 2023.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Neutre",
+        "key_aspects": ["revenue", "guidance"],
+        "rationale": "Delivery beat but artificially stimulated + cautious management commentary. Mixed signals. Stock +10% initially then -3% over 5d."
+      }
+    },
+    {
+      "id": "aapl_006",
+      "ticker": "AAPL",
+      "date": "2024-11-01",
+      "title": "Apple Q4 FY2024: Services record $24.97B, EPS $1.64 beats, raises implied guidance",
+      "content": "Apple fiscal Q4 2024 results beat expectations across the board. Revenue of $94.9 billion exceeded the $94 billion consensus. Services hit a record $24.97 billion (+12% YoY). EPS of $1.64 beat the $1.60 estimate. iPhone revenue of $46.2 billion beat. CEO Cook confirmed Apple Intelligence early reviews are positive with double-digit YoY upgrades in markets where it launched. Gross margin expanded to 46.2%. The company raised its dividend 4% and increased buyback authorization by $110 billion.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Achat",
+        "key_aspects": ["earnings", "revenue", "guidance", "product_launch"],
+        "rationale": "Beat on all metrics + record services + $110B buyback + Apple Intelligence momentum. Stock +1.8% next 5d."
+      }
+    },
+    {
+      "id": "filter_001",
+      "ticker": "AAPL",
+      "date": "2024-04-15",
+      "title": "Fidelity's Large-Cap ETF FLCG Rebalances: Apple Remains Top Holding at 12.3%",
+      "content": "Fidelity's NASDAQ Composite Index Fund conducted its quarterly rebalancing Monday, with Apple maintaining its position as the largest holding at 12.3% of the portfolio, slightly above the prior 11.9% weighting. The rebalancing also increased Microsoft exposure to 11.8%. No fundamental changes to underlying constituent companies were announced. The adjustment reflects market cap changes since the last rebalancing.",
+      "ground_truth": {
+        "filtrage": "hors_scope",
+        "signal": null,
+        "key_aspects": [],
+        "rationale": "ETF rebalancing article — no fundamental information about Apple. Should be rejected by filtrage agent."
+      }
+    },
+    {
+      "id": "filter_002",
+      "ticker": "TSLA",
+      "date": "2024-10-01",
+      "title": "Fed holds rates at 5.25-5.50%, signals possible cut in December 2024",
+      "content": "The Federal Reserve kept its benchmark interest rate unchanged at 5.25-5.50% at its September meeting, as expected. Fed Chair Jerome Powell said the committee remains data-dependent and would be monitoring inflation figures. A potential 25bp cut in December was signaled in the dot plot. Markets initially rallied on the dovish tone before giving back gains. The decision affects all risk assets.",
+      "ground_truth": {
+        "filtrage": "hors_scope",
+        "signal": null,
+        "key_aspects": [],
+        "rationale": "Macro article with no specific Tesla information. Should be filtered out."
+      }
+    },
+    {
+      "id": "msft_004",
+      "ticker": "MSFT",
+      "date": "2024-09-16",
+      "title": "Microsoft announces $1.5B investment in UAE AI firm G42, expands Middle East presence",
+      "content": "Microsoft announced a $1.5 billion investment in UAE-based AI firm G42, taking a minority stake. The deal includes partnership on AI infrastructure, data center expansion, and co-development of AI applications for the Middle East and North Africa region. G42 will migrate to Azure. The agreement required approval from the US government and includes data security safeguards. This expands Microsoft's Middle East cloud revenue opportunity by an estimated $2-3 billion annually by 2027.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Achat",
+        "key_aspects": ["revenue", "product_launch"],
+        "rationale": "Strategic $1.5B investment with clear $2-3B annual revenue expansion. Positive M&A news. Stock +0.9% next 5d."
+      }
+    },
+    {
+      "id": "amzn_003",
+      "ticker": "AMZN",
+      "date": "2024-09-19",
+      "title": "Amazon announces $4B additional investment in Anthropic, extending AI partnership",
+      "content": "Amazon Web Services announced an additional $4 billion investment in Anthropic, the AI safety company behind Claude models, bringing its total commitment to $8 billion. Anthropic will use AWS Trainium chips as its primary AI training infrastructure. AWS customers will gain access to Claude models directly through Amazon Bedrock. This positions AWS as the preferred cloud for enterprise AI, directly competing with Azure OpenAI and Google Cloud Vertex AI. The deal deepens the moat of AWS in the AI infrastructure space.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Achat",
+        "key_aspects": ["product_launch", "revenue"],
+        "rationale": "Strategic $4B AI bet strengthens AWS competitive position in the key AI market. Stock +2.1% next 5d."
+      }
+    },
+    {
+      "id": "aapl_007",
+      "ticker": "AAPL",
+      "date": "2024-08-05",
+      "title": "Apple stock drops 5% amid broader tech selloff as Japan rate hike triggers global risk aversion",
+      "content": "Apple shares fell 5% Monday as a global risk-off selloff triggered by the Bank of Japan's unexpected rate hike led investors to reduce exposure to high-multiple tech stocks. There were no Apple-specific negative developments. The decline was consistent with the broader Nasdaq which fell 3.4%. Analysts noted Apple's fundamental outlook unchanged. The Berkshire Hathaway Q2 13F filing also revealed Warren Buffett reduced his Apple position by approximately 50%.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Neutre",
+        "key_aspects": ["macro_exposure", "leadership"],
+        "rationale": "Drop is macro-driven, not fundamental. Buffett reduction is notable but 13F is delayed; stock recovered in subsequent sessions. Stock -5% then +4% over 5d = Neutre."
+      }
+    },
+    {
+      "id": "tsla_004",
+      "ticker": "TSLA",
+      "date": "2024-12-12",
+      "title": "Tesla Cybertruck recalled for 11,688 vehicles over faulty exterior panel trim",
+      "content": "Tesla issued its second Cybertruck recall in two months, affecting 11,688 vehicles due to exterior body panel trim that can detach while driving, creating a hazard. The fix can be completed over-the-air for approximately 85% of affected vehicles. The recall follows a prior April 2024 recall of 3,878 Cybertrucks for accelerator pedal issues. Analysts noted Cybertruck production volumes represent less than 5% of total Tesla deliveries and that recalls are common for new vehicle launches.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Neutre",
+        "key_aspects": ["product_launch"],
+        "rationale": "Recall is minor in scope (11K units, OTA fix available). Not material to revenue or margins. Neutre. Stock -0.8% next 5d."
+      }
+    },
+    {
+      "id": "amzn_004",
+      "ticker": "AMZN",
+      "date": "2024-12-19",
+      "title": "Amazon AWS revenue to hit $100B run rate in Q1 2025, says CEO Andy Jassy at re:Invent",
+      "content": "Amazon CEO Andy Jassy confirmed at re:Invent 2024 that AWS is on pace to exceed $100 billion in annualized revenue by Q1 2025, up from $91.6 billion in FY2024. He highlighted multi-year contracts signed with major enterprises for AI infrastructure, including a $5.3 billion contract with an unnamed US government agency. AWS's AI revenue is the fastest growing segment within AWS, growing triple digits year-over-year from a smaller base. Amazon announced new AI chip Graviton4 providing 30% better price-performance versus prior gen.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Achat",
+        "key_aspects": ["revenue", "guidance", "product_launch"],
+        "rationale": "$100B AWS run rate + major AI contract + new chip = strong bullish catalyst. Stock +3.1% next 5d."
+      }
+    },
+    {
+      "id": "msft_005",
+      "ticker": "MSFT",
+      "date": "2025-01-29",
+      "title": "Microsoft Q2 FY2025: Azure grows 31% beating 31% estimate, Copilot ARR exceeds $900M",
+      "content": "Microsoft reported Q2 FY2025 results with Azure growing 31%, matching the 31% consensus after three consecutive quarters of worry about deceleration. Copilot M365 annual recurring revenue surpassed $900 million. Total revenue of $69.6 billion beat the $68.9 billion estimate. EPS of $3.23 beat the $3.11 estimate. Management guided Q3 Azure growth of 34-35%, a meaningful acceleration that surprised analysts. Cloud gross margins expanded despite AI capex investment.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Achat",
+        "key_aspects": ["earnings", "revenue", "guidance", "product_launch"],
+        "rationale": "Azure re-acceleration + Q3 guidance above consensus + Copilot proof of monetization. Strong buy signal. Stock +4.2% next 5d."
+      }
+    },
+    {
+      "id": "tsla_005",
+      "ticker": "TSLA",
+      "date": "2025-01-29",
+      "title": "Tesla Q4 2024: Record deliveries 495,570, EPS beats, autonomous driving revenue recognised",
+      "content": "Tesla Q4 2024 deliveries reached 495,570 vehicles, a record and beating consensus of 492,000. Revenue of $25.7 billion slightly missed at $0.1 billion below estimate, but EPS of $0.73 beat $0.71 estimate. The key surprise: Tesla recognized $326 million in Full Self Driving Software revenue for the first time as a recurring software revenue item, vs $0 prior quarter. Management guided 20-30% vehicle delivery growth in 2025 — significantly above the 13% consensus — and confirmed Robotaxi commercial launch in Austin in June 2025.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Achat",
+        "key_aspects": ["earnings", "revenue", "guidance", "product_launch"],
+        "rationale": "Record deliveries + 20-30% 2025 guidance (vs 13% expected) + Robotaxi launch date = extremely bullish. Stock +22% next 5d."
+      }
+    },
+    {
+      "id": "filter_003",
+      "ticker": "MSFT",
+      "date": "2024-11-15",
+      "title": "10 Best Dividend Stocks to Buy According to Reddit's WallStreetBets",
+      "content": "WallStreetBets users have been discussing dividend stocks this month, departing from the community's traditional focus on speculative trades. Microsoft was mentioned in several threads as a solid dividend growth stock, with its 0.7% yield and 10-year dividend CAGR of 11%. Other stocks in the Reddit discussions included Johnson & Johnson, Procter & Gamble, and Coca-Cola. The thread accumulated 3,400 upvotes over 48 hours.",
+      "ground_truth": {
+        "filtrage": "hors_scope",
+        "signal": null,
+        "key_aspects": [],
+        "rationale": "Reddit opinion aggregation with no fundamental information. No actionable signal. Should be rejected."
+      }
+    },
+    {
+      "id": "amzn_005",
+      "ticker": "AMZN",
+      "date": "2025-02-06",
+      "title": "Amazon Q4 2024: AWS +19%, operating income $21.2B, 2025 capex guidance $105B raises concern",
+      "content": "Amazon closed FY2024 with Q4 revenue of $187.8 billion, beating the $187 billion estimate. AWS grew 19% to $28.8 billion, above the 18.8% consensus estimate. Operating income more than doubled to $21.2 billion. However, management guided 2025 capex of $105 billion, far above the $88 billion analyst consensus, raising concern about the pace of AI infrastructure investment relative to near-term cash conversion. Additionally, Q1 2025 operating income guidance of $13.0-17.5 billion bracketed the $18.2 billion consensus with a wide range.",
+      "ground_truth": {
+        "filtrage": "pertinent",
+        "signal": "Neutre",
+        "key_aspects": ["earnings", "revenue", "guidance"],
+        "rationale": "AWS beat but $105B capex surprise + wide Q1 guidance bracket creates uncertainty. Mixed signals. Stock -4.1% next 5d."
+      }
+    }
+  ]
+}
