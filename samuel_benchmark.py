@@ -184,8 +184,8 @@ if args.limit > 0:
     articles = articles[:args.limit]
 
 print(f"\n{'='*65}")
-print(f"BENCHMARK SAMUEL — {len(articles)} articles (FinBERT + Market Impact)")
-print(f"  Market Impact Classifier : {'actif' if use_market_impact else 'ABSENT (fallback polarity)'}")
+print(f"BENCHMARK SAMUEL — {len(articles)} articles (FinBERT PolarityAgent)")
+print(f"  Sortie finale : polarity FinBERT (-1/0/+1) -> Vente/Neutre/Achat")
 print(f"{'='*65}\n")
 
 # ── Analyse ─────────────────────────────────────────────────────────────────────
@@ -210,12 +210,19 @@ for i, article in enumerate(articles, 1):
         litigious            = float(litigious_agent.predict(text))
         fundamental_strength = float(fundamental_agent.predict(text))
 
-        # Market Impact Classifier
+        # Sortie finale = polarity FinBERT directement
+        # (le Market Impact Classifier est une exp. séparée, pas la sortie finale)
         market_impact_raw = predict_market_impact(
             text, ticker, polarity, polarity_conf,
             uncertainty, litigious, fundamental_strength
         )
-        prediction = LABEL_MAP.get(market_impact_raw, 'Neutre')
+        # Mapping polarity → signal commun
+        if polarity == 1:
+            prediction = 'Achat'
+        elif polarity == -1:
+            prediction = 'Vente'
+        else:
+            prediction = 'Neutre'
 
     except Exception as e:
         print(f"  [ERREUR] {e}")
