@@ -1,0 +1,15 @@
+{
+  "nicky_topic_uncertainty_proxy": {
+    "dataset_size": 1600,
+    "positive_share": 0.5,
+    "roc_auc": 0.894027,
+    "average_precision": 0.889615,
+    "accuracy_at_0_5": 0.775,
+    "f1_at_0_5": 0.729323,
+    "best_threshold": 0.35,
+    "accuracy_best_threshold": 0.813125,
+    "f1_best_threshold": 0.823182,
+    "mean_positive_score": 0.515545,
+    "mean_negative_score": 0.253613
+  }
+}

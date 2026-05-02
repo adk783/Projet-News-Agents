@@ -1,0 +1,15 @@
+{
+  "fiqa_aspect_uncertainty_proxy": {
+    "dataset_size": 98,
+    "positive_share": 0.5,
+    "roc_auc": 0.805706,
+    "average_precision": 0.774261,
+    "accuracy_at_0_5": 0.55102,
+    "f1_at_0_5": 0.241379,
+    "best_threshold": 0.3,
+    "accuracy_best_threshold": 0.77551,
+    "f1_best_threshold": 0.792453,
+    "mean_positive_score": 0.388373,
+    "mean_negative_score": 0.243814
+  }
+}

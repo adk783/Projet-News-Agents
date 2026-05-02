@@ -1,0 +1,22 @@
+{
+  "fiqa_sentiment": {
+    "dataset_size": 405,
+    "accuracy": 0.565432,
+    "macro_f1": 0.565666,
+    "class_distribution": {
+      "negative": 135,
+      "neutral": 135,
+      "positive": 135
+    },
+    "prediction_distribution": {
+      "negative": 121,
+      "neutral": 199,
+      "positive": 85
+    },
+    "label_order": [
+      "negative",
+      "neutral",
+      "positive"
+    ]
+  }
+}
