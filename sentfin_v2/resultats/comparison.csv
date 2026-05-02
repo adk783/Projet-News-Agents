@@ -1,0 +1,6 @@
+﻿model,total_rows,valid_predictions,unknown_predictions,accuracy,macro_f1,avg_time_sec,output_file
+finbert_twitter,14409,14409,0,0.711639,0.715717,0.084319,sentfin_v2_finbert_twitter_predictions.csv
+poc_filtrage_agents_distilroberta,2000,2000,0,0.821,0.534121,0.043638,sentfin_v2_poc_filtrage_agents_predictions.csv
+finbert,2000,2000,0,0.8025,0.470203,0.074787,sentfin_v2_finbert_predictions.csv
+samuel_polarity_agent,2000,2000,0,0.8025,0.470203,0.07691,sentfin_v2_samuel_polarityagent_predictions.csv
+antoinev2_phi4_mini,1000,996,4,0.64257,0.320976,8.640007,sentfin_v2_antoinev2_predictions.csv

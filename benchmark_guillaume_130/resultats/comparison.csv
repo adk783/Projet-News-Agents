@@ -1,0 +1,8 @@
+﻿method,total_rows,relevance_accuracy,relevance_f1,sentiment_accuracy,sentiment_macro_f1,avg_time_sec,output_file
+antoinev2,130,0.615385,0.731183,0.554688,0.519683,33.392392,benchmark_maison_antoinev2_predictions.csv
+finbert,130,0.623077,0.70303,0.461538,0.444349,0.513488,benchmark_maison_finbert_predictions.csv
+samuel,130,0.615385,0.731183,0.453846,0.43881,0.370103,benchmark_maison_samuel_predictions.csv
+finbert_twitter,130,0.615385,0.731183,0.430769,0.357695,0.42614,benchmark_maison_finbert_twitter_predictions.csv
+baseline_keywords,130,0.615385,0.731183,0.338462,0.30143,0.000454,benchmark_maison_baseline_keywords_predictions.csv
+poc_filtrage,130,0.615385,0.731183,0.330769,0.2994,0.449498,benchmark_maison_poc_filtrage_predictions.csv
+baseline_neutral,130,0.523077,0.686869,0.615385,0.253968,2.1e-05,benchmark_maison_baseline_neutral_predictions.csv
