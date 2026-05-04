@@ -1,3 +1,14 @@
 yfinance
 newspaper3k
 lxml_html_clean
+trafilatura
+flask
+requests
+python-dotenv
+transformers
+torch
+datasets
+pandas
+scikit-learn
+joblib
+numpy

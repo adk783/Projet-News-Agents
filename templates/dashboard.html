@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentiment Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:        #080808;
+    --surface:   #0f0f0f;
+    --border:    #1c1c1c;
+    --text:      #d0d0d0;
+    --muted:     #444;
+    --bullish:   #4ade80;
+    --bearish:   #f87171;
+    --neutral:   #555;
+    --accent:    #fff;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-sans: 'IBM Plex Sans', sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 52px;
+  }
+  .logo {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    color: var(--text);
+  }
+  .logo span { color: var(--muted); }
+  #live-clock {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    color: var(--muted);
+  }
+
+  /* ── LAYOUT ── */
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: .65rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: .65rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .panel-body { padding: 1.25rem; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .stat-card {
+    padding: .75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .stat-val {
+    font-family: var(--font-mono);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .stat-label {
+    font-size: .65rem;
+    color: var(--muted);
+    margin-top: .15rem;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+  }
+
+  label {
+    display: block;
+    font-size: .68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: .45rem;
+  }
+  .ticker-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: .55rem .8rem;
+    font-family: var(--font-mono);
+    font-size: .8rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .ticker-input:focus { border-color: #333; }
+
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: .75rem;
+  }
+  .toggle-label { font-size: .75rem; color: var(--muted); }
+  .toggle { position: relative; width: 34px; height: 18px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; inset: 0;
+    background: var(--border);
+    border-radius: 18px;
+    cursor: pointer;
+    transition: .2s;
+  }
+  .slider::before {
+    content: '';
+    position: absolute;
+    width: 12px; height: 12px;
+    left: 3px; bottom: 3px;
+    background: var(--muted);
+    border-radius: 50%;
+    transition: .2s;
+  }
+  input:checked + .slider { background: #2a2a2a; border: 1px solid #444; }
+  input:checked + .slider::before { transform: translateX(16px); background: var(--text); }
+
+  .loop-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: .45rem .75rem;
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    color: var(--text);
+    outline: none;
+    margin-top: .45rem;
+    display: none;
+  }
+  .loop-input.visible { display: block; }
+
+  .btn {
+    width: 100%;
+    padding: .6rem 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .07em;
+    cursor: pointer;
+    transition: all .15s;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--muted);
+  }
+  .btn-primary { border-color: #2a2a2a; color: var(--text); }
+  .btn-primary:hover { border-color: #3a3a3a; color: #fff; background: #111; }
+  .btn-secondary { margin-top: .4rem; }
+  .btn-secondary:hover { border-color: #2a2a2a; color: var(--text); background: #111; }
+  .btn:disabled { opacity: .3; cursor: not-allowed; }
+
+  #run-status {
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    color: var(--muted);
+    min-height: 1.2rem;
+    margin-top: .5rem;
+  }
+
+  /* ── RIGHT ── */
+  .right { display: flex; flex-direction: column; gap: 1rem; }
+
+  /* ── TICKER CARDS ── */
+  .ticker-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: .75rem;
+    padding: 1.25rem;
+  }
+  .ticker-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .ticker-card:hover { border-color: #2a2a2a; }
+  .ticker-card.active { border-color: #333; }
+
+  .tc-symbol {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: .25rem;
+  }
+  .tc-sentiment {
+    font-size: .68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: .55rem;
+  }
+  .tc-sentiment.bullish { color: var(--bullish); }
+  .tc-sentiment.bearish { color: var(--bearish); }
+  .tc-sentiment.neutral { color: var(--muted); }
+  .tc-sentiment.insufficient { color: var(--muted); }
+
+  .tc-score-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: .5rem;
+    overflow: hidden;
+  }
+  .tc-score-fill { height: 100%; border-radius: 2px; transition: width .5s ease; }
+  .bullish .tc-score-fill { background: var(--bullish); }
+  .bearish .tc-score-fill { background: var(--bearish); }
+  .neutral .tc-score-fill { background: var(--muted); }
+
+  .tc-meta {
+    display: flex; justify-content: space-between;
+    font-size: .65rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+  .tc-confidence {
+    font-size: .6rem;
+    padding: .1rem .35rem;
+    border-radius: 2px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  /* ── CHARTS ── */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 700px) { .charts-row { grid-template-columns: 1fr; } }
+  .chart-wrap { padding: 1rem; height: 210px; position: relative; }
+
+  /* ── ARTICLE TABLE ── */
+  .article-filter {
+    display: flex; gap: .4rem;
+    padding: 0 1.25rem .9rem;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: .25rem .7rem;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: .65rem;
+    cursor: pointer;
+    transition: .15s;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .filter-btn.active { border-color: #2a2a2a; color: var(--text); }
+  .filter-btn:hover { color: var(--text); }
+
+  .article-list { padding: 0 1.25rem 1.25rem; }
+  .article-item {
+    display: grid;
+    grid-template-columns: 72px 1fr 60px;
+    gap: .75rem;
+    align-items: start;
+    padding: .8rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .article-item:last-child { border-bottom: none; }
+
+  .ai-badge {
+    font-family: var(--font-mono);
+    font-size: .6rem;
+    font-weight: 600;
+    padding: .18rem .45rem;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    text-align: center;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .ai-badge.bullish { color: var(--bullish); border-color: rgba(74,222,128,.2); }
+  .ai-badge.bearish { color: var(--bearish); border-color: rgba(248,113,113,.2); }
+  .ai-badge.neutral { color: var(--muted);   border-color: var(--border); }
+
+  .ai-title {
+    font-size: .78rem;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: .2rem;
+  }
+  .ai-reasoning {
+    font-size: .68rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .ai-score {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    font-weight: 600;
+    text-align: right;
+    color: var(--muted);
+  }
+  .ai-score.bullish { color: var(--bullish); }
+  .ai-score.bearish { color: var(--bearish); }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
+    color: var(--muted);
+    font-size: .78rem;
+    font-family: var(--font-mono);
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SENTIMENT<span>/</span>DASHBOARD</div>
+  <div id="live-clock">--:--:--</div>
+</header>
+
+<main>
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <!-- Stats -->
+    <div class="panel">
+      <div class="panel-header"><span class="dot"></span>Base de données</div>
+      <div class="panel-body">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-val" id="s-total">–</div>
+            <div class="stat-label">Articles</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="s-analysed">–</div>
+            <div class="stat-label">Analysés</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="s-pending">–</div>
+            <div class="stat-label">En attente</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="s-scores">–</div>
+            <div class="stat-label">Scores</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pipeline control -->
+    <div class="panel">
+      <div class="panel-header"><span class="dot"></span>Lancer le pipeline</div>
+      <div class="panel-body" style="display:flex;flex-direction:column;gap:1rem;">
+
+        <div>
+          <label>Tickers (séparés par virgule)</label>
+          <input class="ticker-input" id="ticker-input" type="text" placeholder="AAPL, MSFT, TSLA" value="AAPL, MSFT, TSLA">
+        </div>
+
+        <div>
+          <div class="toggle-row">
+            <span class="toggle-label">Mode Loop</span>
+            <label class="toggle">
+              <input type="checkbox" id="loop-toggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <input class="loop-input" id="loop-interval" type="number" min="20" placeholder="Intervalle (min, ≥ 20)">
+        </div>
+
+        <div>
+<button class="btn btn-primary" id="btn-sourcing" onclick="runPipeline('sourcing')">
+  ▶ Lancer le Sourcing
+</button>
+<button class="btn btn-secondary" id="btn-orchestrateur" onclick="runPipeline('orchestrateur')" style="margin-top:.4rem">
+  ▶ Lancer l'Orchestrateur
+</button>
+
+<div id="progress-zone" style="display:none; margin-top:.75rem">
+  <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+    <span style="font-size:.68rem;color:var(--muted);font-family:var(--font-mono)" id="progress-label"></span>
+    <span style="font-size:.68rem;color:var(--text);font-family:var(--font-mono)" id="progress-pct"></span>
+  </div>
+  <div style="height:2px;background:var(--border);border-radius:2px;overflow:hidden">
+    <div id="progress-bar" style="height:100%;background:var(--text);border-radius:2px;width:0%;transition:width .4s ease"></div>
+  </div>
+</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── RIGHT ── -->
+  <div class="right">
+
+    <!-- Ticker cards -->
+    <div class="panel">
+      <div class="panel-header"><span class="dot"></span>Scores par ticker</div>
+      <div class="ticker-cards" id="ticker-cards">
+        <div class="empty"></div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <div class="panel">
+        <div class="panel-header"><span class="dot"></span>Répartition sentiment</div>
+        <div class="chart-wrap">
+          <canvas id="chart-pie"></canvas>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="dot"></span>Évolution du score</div>
+        <div class="chart-wrap">
+          <canvas id="chart-history"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Articles -->
+    <div class="panel">
+      <div class="panel-header"><span class="dot"></span>Articles analysés</div>
+      <div class="article-filter" id="article-filters"></div>
+      <div class="article-list" id="article-list">
+        <div class="empty"></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ── CLOCK ──────────────────────────────────────────────────────────────────────
+function updateClock() {
+  document.getElementById('live-clock').textContent =
+    new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let selectedTicker = null;
+let pieChart = null;
+let histChart = null;
+let dbEmpty    = false;
+let dbAnalysed = 0;
+let dbTotal    = 0;
+
+// ── LOOP TOGGLE ────────────────────────────────────────────────────────────────
+document.getElementById('loop-toggle').addEventListener('change', function() {
+  document.getElementById('loop-interval').classList.toggle('visible', this.checked);
+});
+
+// ── STATS ──────────────────────────────────────────────────────────────────────
+async function loadStats() {
+  const d = await fetch('/api/stats').then(r => r.json());
+  document.getElementById('s-total').textContent    = d.total_articles;
+  document.getElementById('s-analysed').textContent = d.analysed;
+  document.getElementById('s-pending').textContent  = d.pending;
+  document.getElementById('s-scores').textContent   = d.scores;
+
+  // Si la base est vide, on cache les barres de progression
+  dbEmpty    = d.total_articles === 0;
+  dbAnalysed = d.analysed      || 0;
+  dbTotal    = d.total_articles || 0;
+  if (dbEmpty) {
+    document.getElementById('progress-sourcing').style.display      = 'none';
+    document.getElementById('progress-orchestrateur').style.display = 'none';
+    document.getElementById('run-status').textContent = '';
+    selectedTicker = null;
+  }
+}
+
+// ── TICKER CARDS ───────────────────────────────────────────────────────────────
+async function loadTickerCards() {
+  const scores = await fetch('/api/ticker_scores').then(r => r.json());
+  const container = document.getElementById('ticker-cards');
+
+  if (!scores.length) {
+    container.style.display = 'flex';
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = scores.map(s => {
+    const sent      = s.sentiment_global || 'insufficient';
+    const score     = s.score_global != null ? s.score_global : 0;
+    const scoreDisp = s.score_global != null ? (score >= 0 ? '+' : '') + score.toFixed(2) : '–';
+    // Score signé -1→+1 : on mappe vers 0→100% pour la barre (centre = 50%)
+    const barWidth  = s.score_global != null ? ((score + 1) / 2 * 100).toFixed(0) : 50;
+    const conf      = s.confidence || 'insufficient';
+    const nb        = s.nb_articles || 0;
+    const nbNeutral = s.nb_neutral || 0;
+    const neutralInfo = nbNeutral > 0
+      ? `<div style="margin-top:.25rem;opacity:.55;font-size:.6rem;font-family:var(--font-mono)">+ ${nbNeutral} neutral${nbNeutral>1?'s':''} non comptabilisé${nbNeutral>1?'s':''}</div>`
+      : '';
+    return `
+      <div class="ticker-card ${sent}" onclick="selectTicker('${s.ticker}')" id="card-${s.ticker}">
+        <div class="tc-symbol">${s.ticker}</div>
+        <div class="tc-sentiment ${sent}">${sent === 'insufficient' ? 'no data' : sent}</div>
+        <div class="tc-score-bar"><div class="tc-score-fill" style="width:${barWidth}%"></div></div>
+        <div class="tc-meta">
+          <span>${scoreDisp}</span>
+          <span class="tc-confidence conf-${conf}">${conf}</span>
+        </div>
+        <div class="tc-meta" style="margin-top:.4rem">
+          <span>${nb} article${nb>1?'s':''}</span>
+        </div>
+        ${neutralInfo}
+      </div>
+    `;
+  }).join('');
+
+  // Sélectionner le premier ticker par défaut
+  if (!selectedTicker && scores.length) {
+    selectTicker(scores[0].ticker);
+  }
+}
+
+// ── SELECT TICKER ──────────────────────────────────────────────────────────────
+async function selectTicker(ticker) {
+  selectedTicker = ticker;
+  document.querySelectorAll('.ticker-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('card-' + ticker);
+  if (card) card.classList.add('active');
+
+  await Promise.all([
+    loadPieChart(ticker),
+    loadHistoryChart(ticker),
+    loadArticles(ticker)
+  ]);
+}
+
+// ── PIE CHART ──────────────────────────────────────────────────────────────────
+async function loadPieChart(ticker) {
+  const data = await fetch('/api/sentiment_distribution?ticker=' + ticker).then(r => r.json());
+  const labels = data.map(d => d.sentiment);
+  const values = data.map(d => d.count);
+  const colors = labels.map(l =>
+    l === 'bullish' ? '#3fb950' : l === 'bearish' ? '#f85149' : '#8b949e'
+  );
+
+  if (pieChart) pieChart.destroy();
+  const ctx = document.getElementById('chart-pie').getContext('2d');
+  pieChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#8b949e', font: { family: 'IBM Plex Mono', size: 11 }, padding: 12 } }
+      },
+      cutout: '65%'
+    }
+  });
+}
+
+// ── HISTORY CHART ──────────────────────────────────────────────────────────────
+async function loadHistoryChart(ticker) {
+  const data = await fetch('/api/ticker_history?ticker=' + ticker).then(r => r.json());
+
+  if (histChart) histChart.destroy();
+  const ctx = document.getElementById('chart-history').getContext('2d');
+
+  const labels = data.map(d => new Date(d.calculated_at).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}));
+  const values = data.map(d => d.score_global);
+
+  histChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: ticker,
+        data: values,
+        borderColor: '#58a6ff',
+        backgroundColor: 'rgba(88,166,255,.08)',
+        fill: true,
+        tension: .4,
+        pointRadius: 4,
+        pointBackgroundColor: '#58a6ff',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { ticks: { color: '#484f58', font: { family: 'IBM Plex Mono', size: 10 } }, grid: { color: '#1e2129' } },
+        y: { min: 0, max: 1, ticks: { color: '#484f58', font: { family: 'IBM Plex Mono', size: 10 } }, grid: { color: '#1e2129' } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+// ── ARTICLES ───────────────────────────────────────────────────────────────────
+let articleFilter = 'all';
+
+async function loadArticles(ticker) {
+  const url = ticker ? '/api/article_scores?ticker=' + ticker : '/api/article_scores';
+  const data = await fetch(url).then(r => r.json());
+
+  // Filtres
+  const filters = document.getElementById('article-filters');
+  const sentiments = ['all', 'bullish', 'bearish', 'neutral'];
+  filters.innerHTML = sentiments.map(s => `
+    <button class="filter-btn ${articleFilter===s?'active':''}" onclick="setFilter('${s}')">
+      ${s === 'all' ? 'Tous (' + data.length + ')' : s}
+    </button>
+  `).join('');
+
+  const filtered = articleFilter === 'all' ? data : data.filter(a => a.sentiment === articleFilter);
+  const list = document.getElementById('article-list');
+
+  if (!filtered.length) {
+    list.innerHTML = '';
+    return;
+  }
+
+  list.innerHTML = filtered.map(a => `
+    <div class="article-item">
+      <div>
+        <div class="ai-badge ${a.sentiment}">${a.sentiment}</div>
+        <div style="margin-top:.3rem;font-family:var(--font-mono);font-size:.55rem;color:var(--muted);text-align:center">${(a.source||'yahoo').toUpperCase()}</div>
+      </div>
+      <div>
+        <div class="ai-title">${a.title}</div>
+        <div class="ai-reasoning">${a.reasoning}</div>
+      </div>
+      <div class="ai-score ${a.sentiment}">${a.score != null ? a.score.toFixed(2) : '—'}</div>
+    </div>
+  `).join('');
+}
+
+function setFilter(f) {
+  articleFilter = f;
+  loadArticles(selectedTicker);
+}
+
+// ── RUN PIPELINE ───────────────────────────────────────────────────────────────
+// activePipeline  = pipeline en cours de suivi (null si rien)
+// clickedPipeline = dernier bouton cliqué dans CETTE session
+let activePipeline  = null;
+let clickedPipeline = null;
+
+function showProgress(label, pct) {
+  const zone = document.getElementById('progress-zone');
+  zone.style.display = 'block';
+  document.getElementById('progress-label').textContent = label;
+  document.getElementById('progress-pct').textContent   = pct;
+  document.getElementById('progress-bar').style.width   = pct;
+}
+
+function hideProgress() {
+  document.getElementById('progress-zone').style.display = 'none';
+  activePipeline  = null;
+  clickedPipeline = null;
+}
+
+async function runPipeline(type) {
+  const tickerRaw = document.getElementById('ticker-input').value;
+  const tickers   = tickerRaw.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
+  const loopOn    = document.getElementById('loop-toggle').checked;
+  const loopVal   = parseInt(document.getElementById('loop-interval').value) || null;
+
+  if (!tickers.length) return;
+
+  clickedPipeline = type;
+  activePipeline  = type;
+  showProgress('Démarrage...', '0%');
+
+  document.getElementById('btn-sourcing').disabled      = (type === 'sourcing');
+  document.getElementById('btn-orchestrateur').disabled = (type === 'orchestrateur');
+
+  const res = await fetch('/api/run_pipeline', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tickers, pipeline: type, loop: loopOn ? loopVal : null })
+  }).then(r => r.json());
+
+  if (res.status !== 'ok') hideProgress();
+}
+
+async function updateProgressBars() {
+  if (dbEmpty) return;
+
+  const s   = await fetch('/api/pipeline_status').then(r => r.json());
+  const src = s.sourcing      || {};
+  const orc = s.orchestrateur || {};
+
+  // Si un pipeline tourne → on le suit, quelle que soit la session
+  if      (src.running) activePipeline = 'sourcing';
+  else if (orc.running) activePipeline = 'orchestrateur';
+  else                  activePipeline = clickedPipeline; // sinon on garde le dernier bouton cliqué
+
+  if (!activePipeline) return; // rien à afficher (page fraîche, rien cliqué)
+
+  if (activePipeline === 'sourcing') {
+    if (src.running) {
+      const pct = src.tickers_total > 0 ? Math.round((src.tickers_done / src.tickers_total) * 100) : 0;
+      showProgress(src.ticker_actuel ? 'Scan : ' + src.ticker_actuel : 'Démarrage...', pct + '%');
+      document.getElementById('btn-sourcing').disabled = true;
+    } else if (src.tickers_done > 0 && dbTotal > 0) {
+      // Stale check : le status dit terminé ET la DB a bien des articles
+      showProgress('Terminé — ' + (src.articles_saved || 0) + ' articles collectés', '100%');
+      document.getElementById('btn-sourcing').disabled = false;
+    }
+  }
+
+  if (activePipeline === 'orchestrateur') {
+    if (orc.running) {
+      const pct = orc.total > 0 ? Math.round((orc.done / orc.total) * 100) : 0;
+      showProgress(orc.article_actuel ? orc.article_actuel : 'Analyse...', pct + '%');
+      document.getElementById('btn-orchestrateur').disabled = true;
+    } else if (orc.done > 0 && dbAnalysed > 0) {
+      // Stale check : le status dit terminé ET la DB a bien des articles analysés
+      showProgress('Terminé — ' + orc.done + ' articles analysés', '100%');
+      document.getElementById('btn-orchestrateur').disabled = false;
+    }
+  }
+}
+
+// ── REFRESH LOOP ───────────────────────────────────────────────────────────────
+async function refresh() {
+  await loadStats();
+  await loadTickerCards();
+  await updateProgressBars();
+  if (selectedTicker) await loadArticles(selectedTicker);
+}
+
+
+refresh();
+setInterval(refresh, 10000); // Refresh auto toutes les 10s
+</script>
+</body>
+</html>
