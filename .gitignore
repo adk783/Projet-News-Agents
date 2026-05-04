@@ -1,7 +1,13 @@
-# Ignorer la base de données SQLite locale
+# Runtime files
 news_database.db
 pipeline.log
+orchestrateur.log
+pipeline_status.json
 
-# Ignorer les dossiers cachés de Python
+# Environnement virtuel
+venv/
+.venv/
+
+# Python cache
 __pycache__/
-*.pyc  
+*.pyc

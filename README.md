@@ -49,25 +49,48 @@ Synthèse de toutes les branches du projet en une seule architecture cohérente.
 
 ## Lancement
 
+### Test rapide via dashboard (recommandé)
+
+**Checklist avant de cliquer**
+- [ ] `pip install -r requirements.txt`
+- [ ] Ollama tourne (`ollama serve`)
+- [ ] Les 2 modèles sont tirés : `ollama pull llama3.2:3b` et `ollama pull phi4-mini`
+
+**Test**
 ```bash
-# 1) Installer les dépendances
+python dashboard.py
+```
+→ ouvre http://127.0.0.1:5000
+
+Dans l'UI :
+1. Le champ tickers est pré-rempli `AAPL, MSFT, TSLA`
+2. Clic **▶ Lancer le Sourcing** → news_pipeline.py en arrière-plan, barre de progression "Scan : AAPL"
+3. Quand terminé, clic **▶ Lancer l'Orchestrateur** → vérification Ollama → "Chargement des modèles…" → analyse article par article
+4. Cards des tickers, camembert sentiment et liste d'articles se remplissent en live
+
+### Lancement manuel (sans dashboard)
+
+```bash
+ollama serve
+ollama pull llama3.2:3b phi4-mini
 pip install -r requirements.txt
 
-# 2) Démarrer Ollama et tirer les modèles
-ollama serve
-ollama pull llama3.2:3b
-ollama pull phi4-mini
-
-# 3) Collecter les news
 python news_pipeline.py --tickers AAPL MSFT GOOGL
-
-# 4) Lancer le pipeline d'analyse
 python orchestrateur.py
-
-# 5) Dashboard
-python dashboard.py
-# http://127.0.0.1:5000
+python dashboard.py            # juste pour visualiser
 ```
+
+### Si Ollama est down ou un modèle manque
+
+L'orchestrateur s'arrête avec un message explicite :
+```
+[OLLAMA] Ollama indisponible sur http://localhost:11434 (...)
+```
+ou
+```
+[OLLAMA] Modèle 'phi4-mini' non trouvé dans Ollama (...)
+```
+L'erreur est aussi écrite dans `pipeline_status.json` (clé `error`) — visible dans le dashboard.
 
 ## Schéma SQLite
 

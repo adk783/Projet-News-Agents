@@ -4,30 +4,36 @@
 Boucle principale qui :
   1) initialise / migre les tables (articles, article_scores, ticker_scores) ;
   2) lit les articles is_analyzed=0 ;
-  3) pour chaque article : filtrage cascade (keywords + LLM) → processing
-     multi-features → insertion dans article_scores → is_analyzed=1 ;
+  3) pour chaque article : processing multi-features → insertion dans
+     article_scores → is_analyzed=1
+     (le filtrage de pertinence est déjà fait par news_pipeline au sourcing,
+     les articles en DB sont par construction pertinents) ;
   4) agrège par ticker via agent_agregateur.calculer_score_ticker ;
   5) écrit le status temps réel dans pipeline_status.json (status_manager).
 
 Provenance :
 - Squelette orchestrateur + suivi status_manager : branche `Antoinev2`.
-- Insertion d'un étage de filtrage cascade            : `filtrage-keywords` + `Antoinev2`.
-- Insertion d'un étage processing multi-agents        : `samuel`.
+- Étage processing multi-agents                  : branche `samuel`.
 """
 
 import logging
 import sqlite3
+import sys
 import time
 
-import yfinance as yf
+import requests
 
-from agent_filtrage import build_keywords, est_pertinent
 from agent_agregateur import calculer_score_ticker
 from processing_pipeline import (
     build_agents,
     ensure_schema,
     insert_article_scores,
     process_article,
+)
+from sentiment_agent import (
+    OLLAMA_URL as SENTIMENT_OLLAMA_URL,
+    MODEL_NAME as SENTIMENT_MODEL,
+    OllamaUnavailableError,
 )
 from status_manager import write_status
 
@@ -50,6 +56,49 @@ if not logger.handlers:
 
 
 DB_PATH = "news_database.db"
+
+
+# ─── HEALTHCHECK OLLAMA ───────────────────────────────────────────────────────
+def check_ollama_ready():
+    """
+    Vérifie qu'Ollama tourne et que le modèle de sentiment est disponible.
+    En cas d'échec : log ERREUR explicite, écrit l'erreur dans pipeline_status.json,
+    et retourne False.
+    """
+    base = SENTIMENT_OLLAMA_URL.rsplit("/api/", 1)[0]
+    tags_url = base + "/api/tags"
+
+    try:
+        r = requests.get(tags_url, timeout=5)
+        r.raise_for_status()
+        models = {m["name"] for m in r.json().get("models", [])}
+    except Exception as e:
+        msg = (
+            f"Ollama indisponible sur {base} ({e}). "
+            f"Lance `ollama serve` dans un autre terminal."
+        )
+        logger.error(f"[OLLAMA] {msg}")
+        write_status(
+            "orchestrateur",
+            {"running": False, "article_actuel": "ERREUR", "done": 0, "total": 0, "error": msg},
+        )
+        return False
+
+    if not any(m.startswith(SENTIMENT_MODEL) for m in models):
+        msg = (
+            f"Modèle '{SENTIMENT_MODEL}' non trouvé dans Ollama "
+            f"(modèles présents : {sorted(models)}). "
+            f"Lance `ollama pull {SENTIMENT_MODEL}`."
+        )
+        logger.error(f"[OLLAMA] {msg}")
+        write_status(
+            "orchestrateur",
+            {"running": False, "article_actuel": "ERREUR", "done": 0, "total": 0, "error": msg},
+        )
+        return False
+
+    logger.info(f"[OLLAMA] OK — {len(models)} modèle(s) ; '{SENTIMENT_MODEL}' trouvé.")
+    return True
 
 
 # ─── INIT BASE ────────────────────────────────────────────────────────────────
@@ -101,27 +150,17 @@ def get_articles_non_analyses(cursor):
     return rows
 
 
-# ─── INFOS PAR TICKER (keywords + company_name) ───────────────────────────────
-def load_ticker_context(tickers):
-    """Pré-charge les keywords et le nom de société pour chaque ticker."""
-    ctx = {}
-    for t in tickers:
-        try:
-            info = yf.Ticker(t).info or {}
-            ctx[t] = {
-                "company_name": info.get("longName") or info.get("shortName") or t,
-                "keywords": build_keywords(info),
-            }
-            logger.info(f"[{t}] keywords={len(ctx[t]['keywords'])} ; name='{ctx[t]['company_name']}'")
-        except Exception as e:
-            logger.warning(f"[{t}] yfinance.info indisponible ({e}) — fallback minimal")
-            ctx[t] = {"company_name": t, "keywords": {t.lower()}}
-    return ctx
-
-
 # ─── BOUCLE PRINCIPALE ────────────────────────────────────────────────────────
 def run_orchestrateur():
     logger.info("=== Démarrage de l'orchestrateur ===")
+
+    # --- Healthcheck Ollama AVANT tout chargement coûteux -----------------
+    write_status(
+        "orchestrateur",
+        {"running": True, "article_actuel": "Vérification Ollama…", "done": 0, "total": 0},
+    )
+    if not check_ollama_ready():
+        sys.exit(1)
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -131,19 +170,33 @@ def run_orchestrateur():
     articles = get_articles_non_analyses(cursor)
     if not articles:
         logger.info("Aucun article à analyser, arrêt.")
+        write_status(
+            "orchestrateur",
+            {"running": False, "article_actuel": "Aucun article à analyser", "done": 0, "total": 0},
+        )
         conn.close()
         return
 
-    # Contexte par ticker (keywords + nom)
-    tickers_uniques = sorted({row[1] for row in articles})
-    ctx = load_ticker_context(tickers_uniques)
-
-    # Agents de processing (chargement coûteux : on le fait une seule fois)
+    # --- Chargement des agents (lourd : FinBERT ~400 Mo, lexiques) -------
+    write_status(
+        "orchestrateur",
+        {
+            "running": True,
+            "article_actuel": "Chargement des modèles (FinBERT, lexiques)…",
+            "done": 0,
+            "total": len(articles),
+        },
+    )
+    logger.info("Chargement des agents de processing…")
     agents = build_agents()
+    logger.info("Agents prêts.")
 
     tickers_traites = set()
     total = len(articles)
-    write_status("orchestrateur", {"running": True, "article_actuel": "", "done": 0, "total": total})
+    write_status(
+        "orchestrateur",
+        {"running": True, "article_actuel": "", "done": 0, "total": total},
+    )
 
     for idx, article in enumerate(articles):
         url, ticker, title, content, _date_utc = article
@@ -154,23 +207,8 @@ def run_orchestrateur():
         logger.info(f"[{ticker}] {title}")
 
         try:
-            # --- Étage 2 : filtrage cascade ---------------------------------
-            tinfo = ctx.get(ticker, {"company_name": ticker, "keywords": {ticker.lower()}})
-            garde, motif = est_pertinent(
-                ticker=ticker,
-                company_name=tinfo["company_name"],
-                title=title or "",
-                content=content or "",
-                keywords=tinfo["keywords"],
-            )
-
-            if not garde:
-                cursor.execute("UPDATE articles SET is_analyzed = 1 WHERE url = ?", (url,))
-                conn.commit()
-                logger.info(f"  → rejeté ({motif})")
-                continue
-
-            # --- Étage 3 : processing multi-features ------------------------
+            # Étage 3 — processing multi-features
+            # (le filtrage de pertinence est déjà fait par news_pipeline)
             row = process_article((url, ticker, title, content), agents)
             insert_article_scores(cursor, row)
             cursor.execute("UPDATE articles SET is_analyzed = 1 WHERE url = ?", (url,))
@@ -182,11 +220,25 @@ def run_orchestrateur():
                 f"  ✓ {row['sentiment']} ({score_disp}) | "
                 f"polarity={row['polarity']} unc={row['uncertainty']:.2f}"
             )
+        except OllamaUnavailableError as e:
+            logger.error(f"[OLLAMA] Indisponible en cours de pipeline : {e}")
+            write_status(
+                "orchestrateur",
+                {
+                    "running": False,
+                    "article_actuel": "ERREUR Ollama",
+                    "done": idx,
+                    "total": total,
+                    "error": str(e),
+                },
+            )
+            conn.close()
+            sys.exit(1)
         except Exception as e:
             logger.error(f"Erreur sur '{title}' : {e}")
             continue
 
-        time.sleep(0.5)
+        time.sleep(0.3)
 
     # --- Étage 4 : agrégation par ticker ------------------------------------
     logger.info(f"Agrégation pour : {tickers_traites}")

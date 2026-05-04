@@ -210,7 +210,7 @@ def fetch_yahoo(ticker_symbol, company_name, stock, keywords, cursor, conn, sect
             logger.warning(f"[Yahoo] Article ignoré (contenu trop court) : {title}")
             continue
 
-        pertinent, motif_ia = est_pertinent(ticker_symbol, company_name, title, content)
+        pertinent, motif_ia = est_pertinent(ticker_symbol, company_name, title, content, keywords=keywords)
         if not pertinent:
             insert_filtre(cursor, conn, url, ticker_symbol, title, date_utc, content, motif_ia, 0)
             continue
@@ -297,7 +297,7 @@ def fetch_finnhub(ticker_symbol, company_name, api_key, keywords, cursor, conn, 
             logger.warning(f"[Finnhub] Article ignoré (contenu trop court) : {title}")
             continue
 
-        pertinent, motif_ia = est_pertinent(ticker_symbol, company_name, title, content)
+        pertinent, motif_ia = est_pertinent(ticker_symbol, company_name, title, content, keywords=keywords)
         if not pertinent:
             insert_filtre(cursor, conn, url, ticker_symbol, title, date_utc, content, motif_ia, 0)
             continue

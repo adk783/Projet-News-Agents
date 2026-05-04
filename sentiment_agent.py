@@ -121,22 +121,45 @@ Response:"""
 
 
 # ─── APPEL OLLAMA ──────────────────────────────────────────────────────────────
+class OllamaUnavailableError(RuntimeError):
+    """Levée quand Ollama est injoignable ou que le modèle de sentiment manque."""
+
+
 def appeler_ollama(prompt):
     """
     Envoie le prompt à Ollama et retourne la réponse texte brute.
+    Lève OllamaUnavailableError avec un message explicite si Ollama est down
+    ou si le modèle requis est manquant.
     """
     payload = {
         "model": MODEL_NAME,
         "prompt": prompt,
         "stream": False,
         "options": {
-            "temperature": 0.0,   
+            "temperature": 0.0,
             "top_p": 0.9,
-            "num_predict": 150   
-        }
+            "num_predict": 150,
+        },
     }
 
-    response = requests.post(OLLAMA_URL, json=payload, timeout=60)
+    try:
+        response = requests.post(OLLAMA_URL, json=payload, timeout=60)
+    except requests.exceptions.ConnectionError as e:
+        raise OllamaUnavailableError(
+            f"Ollama injoignable sur {OLLAMA_URL} ({e}). "
+            f"Lance `ollama serve` dans un autre terminal."
+        ) from e
+    except requests.exceptions.Timeout as e:
+        raise OllamaUnavailableError(
+            f"Ollama timeout sur {OLLAMA_URL} ({e})."
+        ) from e
+
+    if response.status_code == 404:
+        raise OllamaUnavailableError(
+            f"Modèle '{MODEL_NAME}' non trouvé dans Ollama. "
+            f"Lance `ollama pull {MODEL_NAME}`."
+        )
+
     response.raise_for_status()
     return response.json()["response"].strip()
 

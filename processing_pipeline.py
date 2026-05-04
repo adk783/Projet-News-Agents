@@ -27,7 +27,7 @@ from polarity_agent import PolarityAgent
 from uncertainty_agent import UncertaintyAgent
 from litigious_agent import LitigiousAgent
 from fundamental_strength_agent import FundamentalStrengthAgent
-from sentiment_agent import analyser_article
+from sentiment_agent import analyser_article, OllamaUnavailableError
 
 
 logger = logging.getLogger("ProcessingPipeline")
@@ -102,14 +102,19 @@ def process_article(article, agents):
     legal_risk = agents["litigious"].predict(text)
     fundamental_strength = agents["fundamental"].predict(text)
 
-    # SentimentAgent LLM (Antoinev2) — peut échouer, on log et on garde None
+    # SentimentAgent LLM (Antoinev2)
+    # - OllamaUnavailableError → on remonte, l'orchestrateur arrête tout
+    #   (sinon : tous les articles seraient marqués 'neutral' silencieusement)
+    # - Autres erreurs (JSON parse, score invalide…) → on tag 'neutral' et on continue
     try:
         result = analyser_article(url, ticker, title, content)
         sentiment = result["sentiment"]
         score = result["score"]
         reasoning = result["reasoning"]
+    except OllamaUnavailableError:
+        raise
     except Exception as e:
-        logger.warning(f"[SentimentLLM] Erreur ({e}) pour {title} → fallback neutral")
+        logger.warning(f"[SentimentLLM] Erreur parsing ({e}) pour '{title}' → fallback neutral")
         sentiment, score, reasoning = "neutral", None, f"sentiment_llm_error: {e}"
 
     risk_adj, conviction, fund_impact = compute_derived_features(
