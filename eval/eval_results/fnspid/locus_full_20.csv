@@ -1,0 +1,21 @@
+ticker,title,ground_truth,polarity,polarity_conf,polarity_label,uncertainty,litigious,fundamental_strength,market_impact_raw,prediction,latency_s,correct
+INTU,"39 Firms Going Ex-Dividend Next Week, Including Verizon, AT&T And The Gap",,0,0.0,neutral,0.5,0.0,0.5,Neutral,Neutral,0.814,False
+INTU,"Open Text (OTEX) Hits 52-Week High, Can the Run Continue?",,-1,0.9991,negative,0.9926,0.0,0.5,Bearish,Bearish,199.098,False
+INTU,Grab 5 Best-in-Bracket Software Stocks for Stellar Returns,,0,0.0,neutral,0.5,0.0,0.5,Neutral,Neutral,0.026,False
+INTU,5 Winners as U.S.-China Agree to Resume Trade Talks,,-1,0.9235,negative,0.9925,0.0,0.5,Bearish,Bearish,331.928,False
+INTU,Intuit (INTU) Outpaces Stock Market Gains: What You Should Know,,-1,0.9962,negative,0.9995,0.0,0.5,Bearish,Bearish,260.255,False
+INTU,"Current Stock Market Awaits China Trade Talks, 7 Big Caps Near Buy Points",,0,0.0,neutral,0.5,0.0,0.5,Neutral,Neutral,0.032,False
+INTU,3 Blue-Chip Technology Stocks to Buy to Close Out June,,0,0.0,neutral,0.5,0.0,0.5,Neutral,Neutral,0.035,False
+INTU,H&R Block To Acquire Wave Financial For Small Business Accounting,,0,0.0,neutral,0.5,0.0,0.5,Neutral,Neutral,0.033,False
+INTU,Weekly CFO Sells Highlight,,0,0.0,neutral,0.5,0.0,0.5,Neutral,Neutral,0.032,False
+INTU,Intuit (INTU) Up 8.4% Since Last Earnings Report: Can It Continue?,,-1,0.9997,negative,0.9946,0.0,0.5,Bearish,Bearish,354.935,False
+INTU,Shopify: Ridiculous Valuation,,-1,0.9671,negative,0.9944,0.0,0.5,Bearish,Bearish,354.383,False
+INTU,The Best Places To Work: Delivering Strong Results Compared To The S&P 500 Over ,,1,0.9994,positive,0.9939,0.0,0.5,Bullish,Bullish,290.411,False
+INTU,"Zacks.com featured highlights include: Intuit, Insperity, Amedisys, Pioneer Natu",,0,0.0,neutral,0.5,0.0,0.5,Neutral,Neutral,0.03,False
+INTU,Intuit (INTU) is an Incredible Growth Stock: 3 Reasons Why,,1,0.9992,positive,0.997,0.0,0.5,Bullish,Bullish,329.978,False
+INTU,3 Cloud Stocks to Buy Right Now,,0,0.0,neutral,0.5,0.0,0.5,Neutral,Neutral,0.024,False
+INTU,5 GARP Stocks for a Winning Portfolio,,0,0.0,neutral,0.5,0.0,0.5,Neutral,Neutral,0.023,False
+INTU,Intuit To Acquire Origami Logic For Marketing Analytics Tech,,0,0.0,neutral,0.5,0.0,0.5,Neutral,Neutral,0.024,False
+INTU,Intuit Focuses On AI To Drive Growth,,0,0.9985,neutral,0.9984,0.0,0.5,Neutral,Neutral,308.602,False
+INTU,Factors to Consider Ahead of Coupa's (COUP) Q1 Earnings,,0,0.0,neutral,0.5,0.0,0.5,Neutral,Neutral,0.025,False
+INTU,Factors to Consider Ahead of Keysight's (KEYS) Q2 Earnings,,0,0.0,neutral,0.5,0.0,0.5,Neutral,Neutral,0.022,False

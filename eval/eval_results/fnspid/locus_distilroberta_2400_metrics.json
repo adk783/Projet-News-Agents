@@ -1,0 +1,20 @@
+{
+  "mode": "distilroberta",
+  "total": 2400,
+  "correct": null,
+  "accuracy": null,
+  "macro_f1": null,
+  "labels_available": false,
+  "avg_time_s": 0.0342,
+  "total_time_s": 82.18,
+  "prediction_distribution": {
+    "Neutral": 1667,
+    "Bullish": 530,
+    "Bearish": 203
+  },
+  "samuel_ref": {
+    "accuracy": 0.39875,
+    "macro_f1": 0.394296
+  },
+  "note": "accuracy non calculable — labels market_impact generes par Samuel via cours boursier J+2"
+}

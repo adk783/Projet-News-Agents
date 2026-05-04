@@ -1,0 +1,20 @@
+{
+  "mode": "full",
+  "total": 20,
+  "correct": null,
+  "accuracy": null,
+  "macro_f1": null,
+  "labels_available": false,
+  "avg_time_s": 121.5355,
+  "total_time_s": 2430.71,
+  "prediction_distribution": {
+    "Neutral": 13,
+    "Bearish": 5,
+    "Bullish": 2
+  },
+  "samuel_ref": {
+    "accuracy": 0.39875,
+    "macro_f1": 0.394296
+  },
+  "note": "accuracy non calculable — labels market_impact generes par Samuel via cours boursier J+2"
+}

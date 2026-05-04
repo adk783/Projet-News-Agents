@@ -1,0 +1,28 @@
+{
+  "mode": "full",
+  "articles": 25,
+  "n": 18,
+  "correct": 12,
+  "accuracy": 0.667,
+  "macro_f1": 0.579,
+  "per_class": {
+    "Achat": {
+      "precision": 0.75,
+      "recall": 0.818,
+      "f1": 0.783,
+      "support": 11
+    },
+    "Vente": {
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1": 0.667,
+      "support": 4
+    },
+    "Neutre": {
+      "precision": 0.25,
+      "recall": 0.333,
+      "f1": 0.286,
+      "support": 3
+    }
+  }
+}
