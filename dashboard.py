@@ -46,6 +46,8 @@ def article_scores():
     if ticker:
         rows = query("""
             SELECT a.title, s.ticker, s.sentiment, s.score, s.reasoning, s.analyzed_at,
+                   s.polarity, s.polarity_conf, s.uncertainty,
+                   s.legal_risk, s.fundamental_strength,
                    COALESCE(a.source, 'yahoo') as source
             FROM article_scores s
             JOIN articles a ON a.url = s.url
@@ -55,6 +57,8 @@ def article_scores():
     else:
         rows = query("""
             SELECT a.title, s.ticker, s.sentiment, s.score, s.reasoning, s.analyzed_at,
+                   s.polarity, s.polarity_conf, s.uncertainty,
+                   s.legal_risk, s.fundamental_strength,
                    COALESCE(a.source, 'yahoo') as source
             FROM article_scores s
             JOIN articles a ON a.url = s.url

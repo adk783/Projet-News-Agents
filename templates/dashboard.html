@@ -339,6 +339,29 @@
   .ai-score.bullish { color: var(--bullish); }
   .ai-score.bearish { color: var(--bearish); }
 
+  /* ── AGENT BADGES (FinBERT / Uncertainty / Legal / Fundamental) ── */
+  .agent-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    margin-top: .4rem;
+  }
+  .agent-badge {
+    font-family: var(--font-mono);
+    font-size: .58rem;
+    padding: .14rem .4rem;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    letter-spacing: .03em;
+    white-space: nowrap;
+  }
+  .agent-badge .ab-lbl { color: #6e7681; margin-right: .25rem; }
+  .agent-badge .ab-val { color: var(--text); font-weight: 600; }
+  .agent-badge.pol-pos .ab-val { color: var(--bullish); }
+  .agent-badge.pol-neg .ab-val { color: var(--bearish); }
+  .agent-badge.warn    .ab-val { color: #f9a825; }
+
   /* ── EMPTY STATE ── */
   .empty {
     display: flex;
@@ -670,10 +693,40 @@ async function loadArticles(ticker) {
       <div>
         <div class="ai-title">${a.title}</div>
         <div class="ai-reasoning">${a.reasoning}</div>
+        ${renderAgentBadges(a)}
       </div>
       <div class="ai-score ${a.sentiment}">${a.score != null ? a.score.toFixed(2) : '—'}</div>
     </div>
   `).join('');
+}
+
+// Affiche les scores des 4 autres agents (FinBERT / Uncertainty / Legal / Fundamental)
+function renderAgentBadges(a) {
+  const fmt = v => (v == null ? '—' : Number(v).toFixed(2));
+  const polRaw = a.polarity;
+  let polClass = '';
+  let polTxt = '—';
+  if (polRaw != null) {
+    const p = Number(polRaw);
+    polClass = p > 0 ? 'pol-pos' : p < 0 ? 'pol-neg' : '';
+    polTxt = (p > 0 ? '+' : '') + p;
+  }
+  const conf = a.polarity_conf != null ? ' (' + fmt(a.polarity_conf) + ')' : '';
+  const unc  = a.uncertainty;
+  const leg  = a.legal_risk;
+  const fund = a.fundamental_strength;
+
+  const uncClass  = (unc  != null && unc  > 0.5) ? 'warn' : '';
+  const legClass  = (leg  != null && leg  > 0.3) ? 'warn' : '';
+
+  return `
+    <div class="agent-badges">
+      <span class="agent-badge ${polClass}"><span class="ab-lbl">FinBERT</span><span class="ab-val">${polTxt}${conf}</span></span>
+      <span class="agent-badge ${uncClass}"><span class="ab-lbl">Uncert</span><span class="ab-val">${fmt(unc)}</span></span>
+      <span class="agent-badge ${legClass}"><span class="ab-lbl">Legal</span><span class="ab-val">${fmt(leg)}</span></span>
+      <span class="agent-badge"><span class="ab-lbl">Fund</span><span class="ab-val">${fmt(fund)}</span></span>
+    </div>
+  `;
 }
 
 function setFilter(f) {
