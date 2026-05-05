@@ -97,17 +97,29 @@ def process_article(article, agents):
     text = (content if content else title) or ""
     text = text[:MAX_TEXT]
 
+    # 1. Agents déterministes amont (parallèle dans la sémantique, séquentiel ici)
     polarity, polarity_conf, _label = agents["polarity"].predict(text)
     uncertainty = agents["uncertainty"].predict(text)
     legal_risk = agents["litigious"].predict(text)
     fundamental_strength = agents["fundamental"].predict(text)
 
-    # SentimentAgent LLM (Antoinev2)
+    # 2. Agrégation des features amont → dict transmis à phi4 comme contexte
+    #    Permet à phi4 de jouer le rôle d'arbitre final (synthèse) au lieu
+    #    d'analyser l'article en aveugle, en parallèle des autres agents.
+    upstream_features = {
+        "polarity": int(polarity),
+        "polarity_conf": float(polarity_conf),
+        "uncertainty": float(uncertainty),
+        "legal_risk": float(legal_risk),
+        "fundamental_strength": float(fundamental_strength),
+    }
+
+    # 3. SentimentAgent LLM (phi4-mini) en synthèse, informé par l'archi
     # - OllamaUnavailableError → on remonte, l'orchestrateur arrête tout
     #   (sinon : tous les articles seraient marqués 'neutral' silencieusement)
     # - Autres erreurs (JSON parse, score invalide…) → on tag 'neutral' et on continue
     try:
-        result = analyser_article(url, ticker, title, content)
+        result = analyser_article(url, ticker, title, content, features=upstream_features)
         sentiment = result["sentiment"]
         score = result["score"]
         reasoning = result["reasoning"]
